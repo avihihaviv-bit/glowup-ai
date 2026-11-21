@@ -13,7 +13,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-line bg-surface p-5 shadow-card",
+        "rounded-2xl border border-line bg-surface p-5 shadow-card backdrop-blur-xl",
         interactive && "transition hover:-translate-y-0.5 hover:border-line-strong",
         className,
       )}
@@ -40,7 +40,7 @@ export const Button = forwardRef<
         size === "md" && "h-11 px-4 text-sm",
         size === "lg" && "h-12 px-6 text-base",
         variant === "primary" &&
-          "bg-gradient-to-l from-accent-strong to-accent text-black shadow-[0_8px_30px_-10px_var(--accent-strong)] hover:brightness-110",
+          "bg-gradient-to-l from-accent-strong to-accent text-white shadow-[0_8px_30px_-10px_var(--accent-strong)] hover:brightness-110",
         variant === "secondary" && "border border-line bg-surface-2 text-fg hover:bg-surface-3",
         variant === "ghost" && "text-muted hover:bg-surface-2 hover:text-fg",
         variant === "danger" && "border border-danger/30 bg-danger/10 text-danger hover:bg-danger/20",

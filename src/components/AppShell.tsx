@@ -17,28 +17,31 @@ import {
   MoreHorizontal,
   Sparkles,
   FlaskConical,
+  HeartHandshake,
 } from "lucide-react";
 import { useStore, computeXP } from "@/lib/store";
 import { levelFor } from "@/lib/plan";
 import { useAIStatus } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./StoredImage";
 import { Modal } from "./ui";
 
 export const NAV = [
-  { href: "/", label: "דשבורד", icon: LayoutDashboard },
-  { href: "/plan", label: "תוכנית 30 יום", icon: CalendarCheck },
-  { href: "/face", label: "ניתוח פנים", icon: ScanFace },
-  { href: "/hair", label: "שיער ותספורות", icon: Scissors },
-  { href: "/skin", label: "טיפוח עור", icon: Droplets },
-  { href: "/fitness", label: "גוף וכושר", icon: Dumbbell },
-  { href: "/style", label: "סטייל", icon: Shirt },
-  { href: "/coach", label: "מאמן AI", icon: MessageCircleHeart },
-  { href: "/progress", label: "התקדמות", icon: TrendingUp },
-  { href: "/settings", label: "הגדרות ופרטיות", icon: Settings },
+  { href: "/", key: "nav.home", icon: LayoutDashboard },
+  { href: "/plan", key: "nav.plan", short: "nav.planShort", icon: CalendarCheck },
+  { href: "/concerns", key: "nav.concerns", icon: HeartHandshake },
+  { href: "/face", key: "nav.face", icon: ScanFace },
+  { href: "/hair", key: "nav.hair", icon: Scissors },
+  { href: "/skin", key: "nav.skin", icon: Droplets },
+  { href: "/fitness", key: "nav.fitness", icon: Dumbbell },
+  { href: "/style", key: "nav.style", icon: Shirt },
+  { href: "/coach", key: "nav.coach", icon: MessageCircleHeart },
+  { href: "/progress", key: "nav.progress", icon: TrendingUp },
+  { href: "/settings", key: "nav.settings", icon: Settings },
 ];
 
-const MOBILE = ["/", "/plan", "/coach", "/progress"];
+const MOBILE = ["/", "/concerns", "/coach", "/progress"];
 
 function isActive(path: string, href: string) {
   return href === "/" ? path === "/" : path.startsWith(href);
@@ -73,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="glow-bg min-h-dvh">
       <Sidebar path={path} />
-      <main className="lg:pr-72">
+      <main className="lg:ps-72">
         <TopBar />
         <AnimatePresence mode="wait">
           <motion.div
@@ -93,6 +96,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
+function LogoTagline() {
+  const t = useT();
+  return <div className="text-[11px] text-dim">{t("nav.tagline")}</div>;
+}
+
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2.5">
@@ -103,7 +111,7 @@ function Logo() {
         <div className="text-[15px] font-extrabold tracking-wide" dir="ltr">
           GLOWUP <span className="text-gradient">AI</span>
         </div>
-        <div className="text-[11px] text-dim">המאמן האישי שלך</div>
+        <LogoTagline />
       </div>
     </Link>
   );
@@ -114,21 +122,22 @@ function AIBadge() {
   if (loading) return null;
   return aiEnabled ? (
     <span className="inline-flex items-center gap-1 rounded-full bg-green-soft px-2 py-0.5 text-[11px] font-medium text-green">
-      <span className="size-1.5 rounded-full bg-green" /> AI מחובר
+      <span className="size-1.5 rounded-full bg-green" /> <AiLabel />
     </span>
   ) : (
     <Link href="/settings" className="inline-flex items-center gap-1 rounded-full bg-warn/10 px-2 py-0.5 text-[11px] font-medium text-warn">
-      <FlaskConical className="size-3" /> מצב דמו
+      <FlaskConical className="size-3" /> <DemoLabel />
     </Link>
   );
 }
 
 function Sidebar({ path }: { path: string }) {
+  const t = useT();
   const profile = useStore((s) => s.profile)!;
   const state = useStore();
   const lvl = levelFor(computeXP(state));
   return (
-    <aside className="fixed inset-y-0 right-0 z-30 hidden w-72 flex-col border-l border-line bg-elev/80 px-4 py-6 backdrop-blur-xl lg:flex">
+    <aside className="fixed inset-y-0 start-0 z-30 hidden w-72 flex-col border-e border-line bg-elev/80 px-4 py-6 backdrop-blur-xl lg:flex">
       <div className="flex items-center justify-between px-2">
         <Logo />
         <AIBadge />
@@ -147,7 +156,7 @@ function Sidebar({ path }: { path: string }) {
             >
               {active && <motion.span layoutId="side-active" className="absolute inset-0 rounded-xl border border-line bg-surface-2" />}
               <n.icon className={cn("relative size-[18px]", active && "text-accent")} />
-              <span className="relative">{n.label}</span>
+              <span className="relative">{t(n.key)}</span>
             </Link>
           );
         })}
@@ -178,6 +187,7 @@ function TopBar() {
 }
 
 function BottomNav({ path }: { path: string }) {
+  const t = useT();
   const [more, setMore] = useState(false);
   const items = NAV.filter((n) => MOBILE.includes(n.href));
   const moreActive = !MOBILE.some((m) => isActive(path, m) && (m !== "/" || path === "/"));
@@ -190,17 +200,17 @@ function BottomNav({ path }: { path: string }) {
             return (
               <Link key={n.href} href={n.href} className={cn("flex flex-col items-center gap-1 py-2.5 text-[11px]", active ? "text-accent" : "text-muted")}>
                 <n.icon className="size-5" />
-                {n.label.replace(" 30 יום", "")}
+                {t(("short" in n && n.short) || n.key)}
               </Link>
             );
           })}
           <button onClick={() => setMore(true)} className={cn("flex flex-col items-center gap-1 py-2.5 text-[11px]", moreActive ? "text-accent" : "text-muted")}>
             <MoreHorizontal className="size-5" />
-            עוד
+            {t("nav.more")}
           </button>
         </div>
       </nav>
-      <Modal open={more} onClose={() => setMore(false)} title="כל האזורים">
+      <Modal open={more} onClose={() => setMore(false)} title={t("nav.allAreas")}>
         <div className="grid grid-cols-3 gap-2">
           {NAV.map((n) => (
             <Link
@@ -213,11 +223,20 @@ function BottomNav({ path }: { path: string }) {
               )}
             >
               <n.icon className="size-6" />
-              {n.label}
+              {t(n.key)}
             </Link>
           ))}
         </div>
       </Modal>
     </>
   );
+}
+
+function DemoLabel() {
+  const t = useT();
+  return <>{t("common.demo")}</>;
+}
+function AiLabel() {
+  const t = useT();
+  return <>{t("common.aiOn")}</>;
 }

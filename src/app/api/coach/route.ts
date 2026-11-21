@@ -8,6 +8,7 @@ export const maxDuration = 120;
 const Body = z.object({
   profile: ProfileContext,
   context: z.string().max(4000).default(""),
+  focus: z.string().max(3000).optional(),
   messages: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(6000) }))
     .min(1)
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
       max_tokens: 8000,
       ...FALLBACK,
       output_config: { effort: "low" },
-      system: coachSystemPrompt(body.profile, body.context),
+      system: coachSystemPrompt(body.profile, body.context, body.focus),
       messages: msgs,
     });
 

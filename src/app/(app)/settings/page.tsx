@@ -5,7 +5,7 @@ import { Settings, Moon, Sun, Download, Upload, Trash2, ImageOff, ShieldCheck, S
 import { useStore } from "@/lib/store";
 import { useAIStatus } from "@/lib/api";
 import { saveImage, deleteImage } from "@/lib/images";
-import { GOAL_LABELS } from "@/lib/plan";
+import { useT, useLang } from "@/lib/i18n";
 import type { Gender, Goal } from "@/lib/types";
 import { Badge, Button, Card, Chip, Field, Input, Modal, PageHeader, SectionTitle } from "@/components/ui";
 import { Avatar } from "@/components/StoredImage";
@@ -15,6 +15,8 @@ export default function SettingsPage() {
   const s = useStore();
   const profile = s.profile!;
   const ai = useAIStatus();
+  const t = useT();
+  const lang = useLang();
   const router = useRouter();
   const [name, setName] = useState(profile.name);
   const [age, setAge] = useState(profile.age);
@@ -32,8 +34,8 @@ export default function SettingsPage() {
   }
 
   function exportData() {
-    const { profile, plan, completions, customTasks, checkins, workouts, analyses, favorites, haircuts, products, photos, coach, manualFaceShape } = useStore.getState();
-    const data = { version: 1, exportedAt: new Date().toISOString(), note: "התמונות עצמן לא נכללות בייצוא (נשמרות רק במכשיר).", profile, plan, completions, customTasks, checkins, workouts, analyses, favorites, haircuts, products, photos, coach, manualFaceShape };
+    const { profile, plan, completions, customTasks, checkins, workouts, analyses, favorites, haircuts, products, photos, coach, manualFaceShape, concerns, priorityPins, lang } = useStore.getState();
+    const data = { version: 1, exportedAt: new Date().toISOString(), note: "התמונות עצמן לא נכללות בייצוא (נשמרות רק במכשיר).", profile, plan, completions, customTasks, checkins, workouts, analyses, favorites, haircuts, products, photos, coach, manualFaceShape, concerns, priorityPins, lang };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -47,7 +49,7 @@ export default function SettingsPage() {
     try {
       const data = JSON.parse(await file.text());
       if (!data || typeof data !== "object" || !data.profile?.name) throw new Error();
-      const keys = ["profile", "plan", "completions", "customTasks", "checkins", "workouts", "analyses", "favorites", "haircuts", "products", "photos", "coach", "manualFaceShape"] as const;
+      const keys = ["profile", "plan", "completions", "customTasks", "checkins", "workouts", "analyses", "favorites", "haircuts", "products", "photos", "coach", "manualFaceShape", "concerns", "priorityPins", "lang"] as const;
       const clean: Record<string, unknown> = {};
       for (const k of keys) if (k in data) clean[k] = data[k];
       s.importData(clean);
@@ -108,13 +110,13 @@ export default function SettingsPage() {
           </Field>
           <Field label="מטרות">
             <div className="flex flex-wrap gap-2">
-              {(Object.keys(GOAL_LABELS) as Goal[]).map((g) => (
+              {(["grooming", "haircut", "skin", "hairHealth", "muscle", "posture", "growth", "sleep", "nutrition", "puffiness", "style", "confidence"] as Goal[]).map((g) => (
                 <Chip
                   key={g}
                   active={profile.goals.includes(g)}
                   onClick={() => s.updateProfile({ goals: profile.goals.includes(g) ? profile.goals.filter((x) => x !== g) : [...profile.goals, g] })}
                 >
-                  {GOAL_LABELS[g]}
+                  {t(`goal.${g}`)}
                 </Chip>
               ))}
             </div>
@@ -128,6 +130,19 @@ export default function SettingsPage() {
         </Card>
 
         <div className="space-y-4">
+          <Card>
+            <SectionTitle>{t("set.language")}</SectionTitle>
+            <div className="flex gap-2">
+              <Chip active={lang === "he"} onClick={() => s.setLang("he")}>
+                עברית (RTL)
+              </Chip>
+              <Chip active={lang === "en"} onClick={() => s.setLang("en")}>
+                English (LTR)
+              </Chip>
+            </div>
+            <p className="mt-2 text-xs text-dim">{t("set.languageNote")}</p>
+          </Card>
+
           <Card>
             <SectionTitle>תצוגה</SectionTitle>
             <div className="flex gap-2">

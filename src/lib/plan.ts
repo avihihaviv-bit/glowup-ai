@@ -1,8 +1,25 @@
 import type { Category, Frequency, Goal, Plan, PlanTask, Profile, RoutineStep } from "./types";
+
+type LibGoal = "skin" | "hair" | "style" | "fitness" | "posture" | "sleep" | "confidence";
+/** Maps the user-facing goals to the task-library groups. */
+export const GOAL_TO_LIB: Record<Goal, LibGoal[]> = {
+  grooming: ["style", "skin"],
+  haircut: ["hair"],
+  skin: ["skin"],
+  hairHealth: ["hair"],
+  muscle: ["fitness"],
+  posture: ["posture"],
+  growth: ["sleep"],
+  sleep: ["sleep"],
+  nutrition: [],
+  puffiness: ["skin", "sleep"],
+  style: ["style"],
+  confidence: ["confidence"],
+};
 import type { PlanAI } from "./schemas";
 import { dateKey, daysBetween, uid } from "./utils";
 
-type LibTask = Omit<PlanTask, "id"> & { key: string; goals: (Goal | "core")[]; priority: number };
+type LibTask = Omit<PlanTask, "id"> & { key: string; goals: (LibGoal | "core")[]; priority: number };
 
 /** Curated library used to build the Demo plan (and as fallback). */
 export const TASK_LIBRARY: LibTask[] = [
@@ -156,7 +173,7 @@ export function schedule(tasks: PlanTask[], minutesPerDay: number) {
 }
 
 export function buildDemoPlan(profile: Profile): Plan {
-  const goals = new Set<string>([...profile.goals, "core"]);
+  const goals = new Set<string>(["core", ...profile.goals.flatMap((g) => GOAL_TO_LIB[g] ?? [])]);
   const minor = profile.age < 18;
   const lib = TASK_LIBRARY.filter((t) => t.goals.some((g) => goals.has(g)))
     .filter((t) => !(minor && t.key === "progressive"))
@@ -199,13 +216,18 @@ export function planFromAI(ai: PlanAI, profile: Profile): Plan {
 }
 
 export const GOAL_LABELS: Record<Goal, string> = {
+  grooming: "טיפוח וסטייל פנים",
+  haircut: "למצוא תספורת מתאימה",
   skin: "טיפוח עור",
-  hair: "שיער",
-  style: "סטייל",
-  fitness: "כושר וכוח",
+  hairHealth: "בריאות ועיצוב שיער",
+  muscle: "כושר ובניית שריר",
   posture: "יציבה",
+  growth: "מעקב גדילה בריא",
   sleep: "שינה",
-  confidence: "ביטחון עצמי",
+  nutrition: "תזונה",
+  puffiness: "נפיחות פנים ובטן",
+  style: "לבוש וסטייל אישי",
+  confidence: "ביטחון והרגלים טובים",
 };
 
 /** 1-based plan day for a date, or null if outside the plan. */

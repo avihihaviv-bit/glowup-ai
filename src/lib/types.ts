@@ -13,29 +13,94 @@ export type Frequency = "daily" | "3x_week" | "weekly" | "once";
 export type Gender = "male" | "female" | "other" | "";
 
 export type Goal =
+  | "grooming"
+  | "haircut"
   | "skin"
-  | "hair"
-  | "style"
-  | "fitness"
+  | "hairHealth"
+  | "muscle"
   | "posture"
+  | "growth"
   | "sleep"
+  | "nutrition"
+  | "puffiness"
+  | "style"
   | "confidence";
+
+export type Lang = "he" | "en";
+export type Units = "metric" | "imperial";
+export type GrowthSex = "male" | "female" | "";
 
 export type Budget = "low" | "medium" | "high";
 
 export type SkinType = "oily" | "dry" | "combination" | "normal" | "sensitive" | "unknown";
 
+export interface Lifestyle {
+  sleepHours?: number;
+  bedtime?: string;
+  wakeTime?: string;
+  waterGlasses?: number;
+  exerciseDays?: number;
+  gymExperience?: "none" | "beginner" | "intermediate" | "advanced";
+  equipment?: string[];
+  hairWash?: string;
+  skinRoutine?: string;
+  diet?: string[];
+  restrictions?: string;
+}
+
 export interface Profile {
   name: string;
-  age: number;
+  age: number; // derived from dob when available
+  dob?: string; // yyyy-mm-dd
+  heightCm?: number;
+  units: Units;
+  country?: string;
+  growthSex: GrowthSex; // optional, only used for growth reference charts
   gender: Gender;
   goals: Goal[];
   minutesPerDay: number;
   budget: Budget;
   skinType: SkinType;
   fitnessLevel: "beginner" | "intermediate" | "advanced";
+  lifestyle: Lifestyle;
   avatarImageId?: string;
   createdAt: string;
+}
+
+export type ConcernCategory =
+  | "skin"
+  | "hair"
+  | "face"
+  | "body"
+  | "posture"
+  | "fitness"
+  | "nutrition"
+  | "bloating"
+  | "sleep"
+  | "growth"
+  | "style"
+  | "other";
+
+export type ConcernStatus = "new" | "inProgress" | "improving" | "completed";
+
+export interface ConcernAnalysis {
+  source: "ai" | "demo";
+  date: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any; // ConcernAnalysisAI shape (see schemas.ts)
+}
+
+export interface Concern {
+  id: string;
+  title: string;
+  description: string;
+  category: ConcernCategory;
+  imageId?: string;
+  status: ConcernStatus;
+  createdAt: string;
+  analysis?: ConcernAnalysis;
+  progress: { date: string; note: string; rating: number }[]; // rating 1-5: how it feels today
+  thread: CoachMessage[];
 }
 
 export interface PlanTask {

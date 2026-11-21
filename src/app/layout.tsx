@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Heebo } from "next/font/google";
 import "./globals.css";
+import { LangSync } from "@/components/LangSync";
 
 const heebo = Heebo({ subsets: ["hebrew", "latin"], variable: "--font-heebo", display: "swap" });
 
@@ -20,7 +21,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="he" dir="rtl" data-theme="dark" className={heebo.variable} suppressHydrationWarning>
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh">
+        <LangSync />
+        {children}
+      </body>
     </html>
   );
 }

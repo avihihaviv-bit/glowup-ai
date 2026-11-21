@@ -146,6 +146,37 @@ export type DailyTasksAI = z.infer<typeof DailyTasksSchema>;
 
 /* ---------- Request bodies (validated on the server) ---------- */
 
+/* ---------- Concerns ---------- */
+
+export const ConcernAnalysisSchema = z.object({
+  understanding: z.string().describe("What the user is describing, in neutral words"),
+  kind: z.enum(["observable", "subjective_preference", "mixed", "unclear"]).describe(
+    "Is this an objectively observable matter, a subjective preference, both, or unclear. Never assume a feature is a flaw just because the user dislikes it.",
+  ),
+  known: z.array(z.string()).describe("What is known from the text/photo"),
+  unknown: z.array(z.string()).describe("What is NOT known and would be needed"),
+  possibleExplanations: z.array(z.string()).describe("Possible explanations, phrased as possibilities, never as diagnoses"),
+  realisticOutlook: z.string().describe("What can realistically be improved and what cannot"),
+  steps: z.array(z.object({ title: z.string(), how: z.string(), minutes: z.number() })),
+  products: z.array(z.object({ type: z.string(), why: z.string(), budgetTip: z.string() })).describe("Only if truly useful; empty array otherwise"),
+  videoQueries: z.array(z.string()).describe("Search queries for educational videos. Do not invent video titles or URLs."),
+  dailyTasks: z.array(z.object({ title: z.string(), how: z.string(), minutes: z.number() })),
+  trackingMetrics: z.array(z.string()),
+  seeProfessional: z.object({ recommended: z.boolean(), when: z.string() }),
+  supportiveNote: z.string().describe("One short, warm, realistic sentence. No shaming, no validation of harsh self-criticism."),
+});
+export type ConcernAnalysisAI = z.infer<typeof ConcernAnalysisSchema>;
+
+export const ConcernAnalyzeRequest = z.object({
+  profile: z.lazy(() => ProfileContext).optional(),
+  title: z.string().min(1).max(120),
+  description: z.string().max(2000),
+  category: z.string().max(20),
+  image: z
+    .object({ mediaType: z.enum(["image/jpeg", "image/png", "image/webp"]), data: z.string().max(7_000_000) })
+    .optional(),
+});
+
 export const ProfileContext = z
   .object({
     name: z.string().max(60).optional(),
@@ -156,6 +187,8 @@ export const ProfileContext = z
     budget: z.string().max(20).optional(),
     skinType: z.string().max(20).optional(),
     fitnessLevel: z.string().max(20).optional(),
+    language: z.enum(["he", "en"]).optional(),
+    heightCm: z.number().min(50).max(260).optional(),
   })
   .passthrough();
 

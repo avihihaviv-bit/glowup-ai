@@ -26,6 +26,7 @@ import { Badge, Button, Card, EmptyState, Modal, ProgressBar, Ring, SectionTitle
 import { TaskItem } from "@/components/tasks";
 import { CheckinModal } from "@/components/CheckinModal";
 import { WeeklyBars } from "@/components/charts";
+import { PrioritiesCard } from "@/components/Priorities";
 
 export default function Dashboard() {
   const s = useStore();
@@ -118,6 +119,8 @@ export default function Dashboard() {
           )}
         </Card>
       </div>
+
+      <PrioritiesCard />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

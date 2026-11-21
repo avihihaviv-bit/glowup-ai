@@ -5,7 +5,10 @@ import type {
   AnalysisRecord,
   Checkin,
   CoachMessage,
+  Concern,
+  ConcernStatus,
   HaircutTried,
+  Lang,
   Plan,
   PlanTask,
   Product,
@@ -32,9 +35,21 @@ interface State {
   coach: CoachMessage[];
   manualFaceShape: string | null;
   theme: "dark" | "light";
+  lang: Lang;
+  concerns: Concern[];
+  priorityPins: string[];
 }
 
 interface Actions {
+  setLang: (l: Lang) => void;
+  addConcern: (c: Concern) => void;
+  updateConcern: (id: string, patch: Partial<Concern>) => void;
+  setConcernStatus: (id: string, status: ConcernStatus) => void;
+  removeConcern: (id: string) => void;
+  addConcernMessage: (id: string, m: CoachMessage) => void;
+  updateConcernMessage: (id: string, mid: string, content: string) => void;
+  addConcernProgress: (id: string, entry: Concern["progress"][number]) => void;
+  setPriorityPins: (ids: string[]) => void;
   setProfile: (p: Profile) => void;
   updateProfile: (p: Partial<Profile>) => void;
   setPlan: (p: Plan | null) => void;
@@ -78,12 +93,33 @@ const initial: State = {
   coach: [],
   manualFaceShape: null,
   theme: "dark",
+  lang: "he",
+  concerns: [],
+  priorityPins: [],
 };
 
 export const useStore = create<State & Actions>()(
   persist(
     (set, get) => ({
       ...initial,
+      setLang: (lang) => set({ lang }),
+      addConcern: (c) => set((s) => ({ concerns: [c, ...s.concerns] })),
+      updateConcern: (id, patch) => set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+      setConcernStatus: (id, status) => set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, status } : c)) })),
+      removeConcern: (id) => {
+        const c = get().concerns.find((x) => x.id === id);
+        if (c?.imageId) deleteImage(c.imageId);
+        set((s) => ({ concerns: s.concerns.filter((x) => x.id !== id), priorityPins: s.priorityPins.filter((p) => p !== `concern:${id}`) }));
+      },
+      addConcernMessage: (id, m) =>
+        set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, thread: [...c.thread, m].slice(-60) } : c)) })),
+      updateConcernMessage: (id, mid, content) =>
+        set((s) => ({
+          concerns: s.concerns.map((c) => (c.id === id ? { ...c, thread: c.thread.map((m) => (m.id === mid ? { ...m, content } : m)) } : c)),
+        })),
+      addConcernProgress: (id, entry) =>
+        set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, progress: [...c.progress, entry] } : c)) })),
+      setPriorityPins: (priorityPins) => set({ priorityPins }),
       setProfile: (profile) => set({ profile }),
       updateProfile: (p) => set((s) => (s.profile ? { profile: { ...s.profile, ...p } } : {})),
       setPlan: (plan) => set({ plan }),
@@ -145,18 +181,36 @@ export const useStore = create<State & Actions>()(
           photos: [],
           analyses: s.analyses.map((a) => ({ ...a, imageId: undefined })),
           haircuts: s.haircuts.map((h) => ({ ...h, imageId: undefined })),
+          concerns: s.concerns.map((c) => ({ ...c, imageId: undefined })),
           profile: s.profile ? { ...s.profile, avatarImageId: undefined } : null,
         }));
       },
       resetAll: async () => {
         await clearImages();
-        set({ ...initial, theme: get().theme });
+        set({ ...initial, theme: get().theme, lang: get().lang });
       },
       importData: (data) => set((s) => ({ ...s, ...data })),
     }),
     {
       name: "glowup-ai-v1",
-      version: 1,
+      version: 2,
+      migrate: (persisted, version) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const st = persisted as any;
+        if (version < 2) {
+          const legacy: Record<string, string> = { hair: "haircut", fitness: "muscle" };
+          if (st.profile) {
+            st.profile.goals = (st.profile.goals ?? []).map((g: string) => legacy[g] ?? g);
+            st.profile.units ??= "metric";
+            st.profile.growthSex ??= "";
+            st.profile.lifestyle ??= {};
+          }
+          st.lang ??= "he";
+          st.concerns ??= [];
+          st.priorityPins ??= [];
+        }
+        return st;
+      },
     },
   ),
 );

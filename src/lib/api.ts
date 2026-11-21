@@ -61,6 +61,8 @@ export function profileContext(p: Profile | null) {
     budget: p.budget,
     skinType: p.skinType,
     fitnessLevel: p.fitnessLevel,
+    heightCm: p.heightCm,
+    language: useStore.getState().lang,
   };
 }
 
@@ -95,12 +97,13 @@ export async function streamCoach(
   messages: { role: "user" | "assistant"; content: string }[],
   onDelta: (text: string) => void,
   signal?: AbortSignal,
+  focus?: string,
 ) {
   const s = useStore.getState();
   const res = await fetch("/api/coach", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ profile: profileContext(s.profile), context: progressContext(), messages }),
+    body: JSON.stringify({ profile: profileContext(s.profile), context: progressContext(), messages, focus }),
     signal,
   });
   if (!res.ok || !res.body) {
