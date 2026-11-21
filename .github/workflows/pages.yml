@@ -1,0 +1,52 @@
+# Publishes a static DEMO-mode build to GitHub Pages (no server, so no AI API routes).
+# For the full app with real AI, deploy to Vercel instead.
+name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Prepare static export (remove server-only code)
+        run: |
+          rm -r src/app/api src/lib/ai
+          python3 - <<'PY'
+          s = open('next.config.ts').read()
+          s = s.replace('cacheComponents: true,', 'output: "export",\n  basePath: "/glowup-ai",\n  trailingSlash: false,')
+          s = s.replace('  partialPrefetching: true,\n', '')
+          open('next.config.ts', 'w').write(s)
+          PY
+      - run: npm run build
+      - run: touch out/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
