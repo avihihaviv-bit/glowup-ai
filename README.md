@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GLOWUP AI ✨
 
-## Getting Started
+מאמן אישי מבוסס AI לטיפוח, שיער, סטייל, יציבה וכושר — בעברית (RTL), Dark Mode כברירת מחדל, מותאם למחשב ולמובייל.
 
-First, run the development server:
+## הרצה מקומית
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # הוסיפו ANTHROPIC_API_KEY כדי להפעיל AI אמיתי
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+בלי מפתח האפליקציה עובדת ב**מצב דמו**: כל הכפתורים, השמירה וההעלאות עובדים, אבל התוצאות מבוססות על מאגר ידע וכללים (ועל בחירות המשתמש), לא על AI ולא על ניתוח התמונה. כל תוצאה כזו מסומנת בבירור. איכות התמונה (בהירות, חדות, רזולוציה) נמדדת מקומית בדפדפן.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## העלאה ל-Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. מעלים את הריפו ל-GitHub ומייבאים ב-Vercel.
+2. ב-Settings → Environment Variables מוסיפים `ANTHROPIC_API_KEY`.
+3. Deploy. (נתיבי ה-AI מוגדרים עם `maxDuration` ארוך; יצירת תוכנית יכולה לקחת עד דקה.)
 
-## Learn More
+## מה יש באפליקציה
 
-To learn more about Next.js, take a look at the following resources:
+| אזור | מה עושים בו |
+|---|---|
+| דשבורד | ברכה, תמונת פרופיל, Daily Glow Up Score (רק לפי השלמת הרגלים), משימות היום, גרף שבועי, תוכנית, Start Analysis, Daily Check-in, סטטיסטיקות |
+| תוכנית 30 יום | לוח 30 ימים, משימות לכל יום עם "איך" ו"למה" וזמן, שגרות בוקר/ערב, פוקוס שבועי, יצירה מחדש |
+| ניתוח פנים | העלאה/צילום → מבנה פנים כללי, תסרוקות + מה לבקש מהספר, גבות, טיפוח, משקפיים, סטייל, תוכנית פעולה |
+| שיער | ניתוח שיער, Haircut Gallery עם המלצה אישית, מועדפים, תספורות שניסיתי |
+| טיפוח עור | שאלון → שגרת בוקר/ערב/שבועית, המוצרים שלי (כולל "אהבתי"), הפניה לרופא עור |
+| גוף וכושר | תיעוד אימונים, תוכנית אימונים לפי רמה וגיל, גרף כוח, יציבה, שינה, תזונה בריאה, התאמת בגדים |
+| Style Analyzer | ניתוח outfit: צבעים, פריטים, נעליים, שדרוגים, פריטים חדשים, השראה, ציון התאמת פריטים בלבד |
+| מאמן AI | צ'אט בסטרימינג שמכיר את הפרופיל וההתקדמות, יוצר משימות להיום |
+| התקדמות | XP ורמות, רצפים, גרפים, השלמה לפי תחום, תמונות התקדמות פרטיות עם השוואה |
+| הגדרות | עריכת פרופיל, מצב בהיר/כהה, סטטוס AI, ייצוא/ייבוא גיבוי, מחיקת תמונות/כל הנתונים |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## עקרונות בטיחות (נאכפים בפרומפטים ובממשק)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- אין ציוני אטרקטיביות/יופי, דירוג סימטריה או ציונים לתווי פנים וחלקי גוף.
+- אין ניחוש מוצא, גיל, בריאות, אישיות או מאפיינים רגישים מתמונה.
+- אין אבחון רפואי; בעיות עור משמעותיות מופנות לרופא עור.
+- אין הערכת אחוז שומן מתמונה ואין דיאטות קיצוניות; התאמה לגיל (כולל קטינים).
+- Style Analyzer מדרג רק את התאמת הפריטים זה לזה.
 
-## Deploy on Vercel
+## ארכיטקטורה
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Next.js 16 (App Router) + TypeScript + Tailwind CSS v4**, אנימציות עם `motion`, גרפים עם `recharts`.
+- **AI:** Claude דרך `@anthropic-ai/sdk`, בצד השרת בלבד (`src/lib/ai/server.ts`). תשובות ניתוח ותוכנית מגיעות כ-JSON מובנה עם סכמות Zod (`src/lib/schemas.ts`); המאמן משתמש בסטרימינג. מופעל fallback בצד השרת (`fallbacks: "default"`) למקרה שהמודל הראשי מסרב לבקשה.
+- **API routes:** `/api/status`, `/api/analyze`, `/api/plan`, `/api/tasks`, `/api/coach`. כל קלט עובר ולידציה ב-Zod.
+- **שמירת נתונים:** local-first. מצב האפליקציה נשמר ב-`localStorage` (Zustand persist), והתמונות ב-IndexedDB. תמונות מוקטנות ומקודדות מחדש ל-JPEG (מה שגם מסיר EXIF/GPS) ונשלחות לשרת רק בזמן ניתוח AI, בלי שמירה בשרת.
+- **מצב דמו:** `src/lib/demo.ts` ו-`src/lib/knowledge.ts` (צורות פנים, 16 תסרוקות, כללי צבע), ו-`src/lib/plan.ts` (ספריית משימות ותזמון 30 יום).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### הרחבה ל-Supabase (אופציונלי)
+
+ה-store מרוכז ב-`src/lib/store.ts`, והתמונות ב-`src/lib/images.ts`. כדי לסנכרן בין מכשירים אפשר להחליף את ה-storage של `persist` ב-adapter של Supabase (טבלה אחת של JSON לכל משתמש + Auth), ואת `saveImage`/`getImage` ב-Supabase Storage עם bucket פרטי ו-RLS.
+
+## סקריפטים
+
+```bash
+npm run dev     # פיתוח
+npm run build   # בנייה לפרודקשן
+npm start       # הרצת הבנייה
+npm run lint    # ESLint
+```

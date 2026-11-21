@@ -1,26 +1,168 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root,
+[data-theme="dark"] {
+  --bg: #08080a;
+  --bg-elev: #0e0e12;
+  --surface: #131318;
+  --surface-2: #1a1a21;
+  --surface-3: #22222b;
+  --border: #26262f;
+  --border-strong: #33333e;
+  --text: #f5f5f7;
+  --text-muted: #a1a1ad;
+  --text-dim: #6b6b78;
+  --accent: #b8a4ff;
+  --accent-strong: #9b7dff;
+  --accent-soft: rgba(184, 164, 255, 0.12);
+  --green: #5ee69a;
+  --green-soft: rgba(94, 230, 154, 0.12);
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f6f6f8;
+  --bg-elev: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f2f1f6;
+  --surface-3: #e9e7f0;
+  --border: #e5e3ec;
+  --border-strong: #d4d1de;
+  --text: #121216;
+  --text-muted: #5b5b68;
+  --text-dim: #8d8d99;
+  --accent: #7c5cf0;
+  --accent-strong: #6a46ea;
+  --accent-soft: rgba(124, 92, 240, 0.1);
+  --green: #16a361;
+  --green-soft: rgba(22, 163, 97, 0.1);
+  --warn: #c58a06;
+  --danger: #dc2626;
+  --shadow: 0 1px 2px rgba(20, 20, 40, 0.04), 0 12px 32px -20px rgba(20, 20, 40, 0.18);
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-elev: var(--bg-elev);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-dim: var(--text-dim);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-heebo), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --shadow-card: var(--shadow);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.glow-bg {
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(155, 125, 255, 0.13), transparent 60%),
+    radial-gradient(700px 400px at 0% 110%, rgba(94, 230, 154, 0.06), transparent 60%);
+}
+
+[data-theme="light"] .glow-bg {
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(124, 92, 240, 0.08), transparent 60%),
+    radial-gradient(700px 400px at 0% 110%, rgba(22, 163, 97, 0.05), transparent 60%);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--accent) 0%, #e9d5ff 50%, var(--green) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-theme="light"] .text-gradient {
+  background: linear-gradient(90deg, var(--accent-strong), #a855f7 55%, var(--green));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.prose-coach p {
+  margin: 0.35rem 0;
+}
+.prose-coach ul,
+.prose-coach ol {
+  margin: 0.4rem 0;
+  padding-inline-start: 1.2rem;
+}
+.prose-coach ul {
+  list-style: disc;
+}
+.prose-coach ol {
+  list-style: decimal;
+}
+.prose-coach li {
+  margin: 0.15rem 0;
+}
+.prose-coach strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.prose-coach em {
+  color: var(--text-muted);
+}
+
+input[type="range"] {
+  accent-color: var(--accent-strong);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(-100%);
+  }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }
