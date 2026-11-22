@@ -160,7 +160,7 @@ export interface Workout {
   notes: string;
 }
 
-export type AnalysisType = "face" | "hair" | "style" | "skin";
+export type AnalysisType = "face" | "hair" | "style" | "skin" | "ratings";
 
 export interface AnalysisRecord {
   id: string;

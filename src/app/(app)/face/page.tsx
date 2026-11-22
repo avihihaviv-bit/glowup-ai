@@ -10,6 +10,7 @@ import type { FaceAnalysis } from "@/lib/schemas";
 import { Button, Card, ErrorBox, PageHeader, SectionTitle, Spinner } from "@/components/ui";
 import { ImageUploader } from "@/components/ImageUploader";
 import { AnalysisHistory, CloseResult, FaceResult } from "@/components/results";
+import { PhotoRatings } from "@/components/PhotoRatings";
 import { cn } from "@/lib/utils";
 
 export default function FacePage() {
@@ -99,12 +100,14 @@ export default function FacePage() {
               )}
               {!image && <p className="mt-2 text-center text-xs text-dim">העלו תמונה כדי להמשיך</p>}
               <p className="mt-4 text-xs leading-relaxed text-dim">
-                המערכת לא נותנת ציון אטרקטיביות או סימטריה, ולא מנסה לזהות גיל, מוצא, בריאות או אישיות. המטרה: המלצות טיפוח וסטייל מעשיות בלבד.
+                ניתוח הפנים עצמו הוא המלצות טיפוח וסטייל מעשיות, ללא ציונים, ולא מנסה לזהות גיל, מוצא, בריאות או אישיות. דירוגים מספריים (18+) זמינים בנפרד למטה, רק במצב אישי.
               </p>
             </Card>
           </div>
         </div>
       )}
+
+      {!record && <PhotoRatings scope="face" image={image} />}
 
       <AnalysisHistory type="face" onOpen={setRecord} />
     </div>

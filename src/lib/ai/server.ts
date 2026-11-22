@@ -4,6 +4,9 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
 import {
   ConcernAnalysisSchema,
+  FaceRatingsSchema,
+  HairRatingsSchema,
+  BodyRatingsSchema,
   DailyTasksSchema,
   FaceAnalysisSchema,
   HairAnalysisSchema,
@@ -106,6 +109,34 @@ ${profileText(req.profile)}
     type: "image",
     source: { type: "base64", media_type: req.image.mediaType, data: req.image.data },
   };
+
+  if (req.type === "ratings") {
+    const prof = req.profile as { age?: number; gender?: string } | undefined;
+    if ((prof?.age ?? 0) < 18) throw new AIError("דירוגי תמונה זמינים רק מגיל 18.", 403);
+    const common = `אתה GLOWUP AI. המשתמש (בגיר, במצב אישי, שהסכים במפורש) ביקש דירוג מספרי של תמונה אחת שלו.
+עקרונות:
+- אלה הערכות סובייקטיביות של מה שנראה בתמונה אחת בלבד. תאורה, זווית, עדשה ופוזה משפיעים מאוד, והציון עשוי להשתנות בין תמונות.
+- היה עקבי: אותה רובריקה בכל פעם, ציונים שלמים 0-100, ובלי נטייה לניפוח או להחמרה.
+- לכל ציון: note קצר על מה שנראה, ו-tip אחד ריאלי (טיפוח, שגרה, אימון או צילום).
+- אל תנחש גיל, מוצא, בריאות, אישיות או נטייה. אל תאבחן. בלי שפה משפילה.
+- אם התמונה לא שמישה: photoUsable=false וכל הציונים 0.`;
+    const lang = langRule(req.profile);
+    const text = (t: string): Anthropic.Beta.Messages.BetaContentBlockParam => ({ type: "text", text: t });
+    if (req.scope === "face") {
+      const sys = `${common}
+דרג תמונת פנים: overall, potential (פוטנציאל Glow Up: כמה שיפור נראה אפשרי בטיפוח, עור, שיער וסטייל), jawline, cheekbones, skin (מראה העור הנראה), grooming.
+presentation: פרופיל זכר: עד כמה התווים נקראים מסקוליניים בתמונה. פרופיל נקבה: עד כמה נקראים פמיניניים. אחרת null. פרופיל: ${prof?.gender || "לא צוין"}.${lang}`;
+      return analyzeResult("ratings", { scope: "face", ...(await parseWith(FaceRatingsSchema, sys, [image, text("דרג את תמונת הפנים.")])) });
+    }
+    if (req.scope === "hair") {
+      const sys = `${common}
+דרג תמונת שיער: overall, condition (יובש, פריז, ברק), volume, styleFit (התאמת התספורת למבנה הפנים הנראה), neatness. אל תאבחן נשירה או מצבי קרקפת.${lang}`;
+      return analyzeResult("ratings", { scope: "hair", ...(await parseWith(HairRatingsSchema, sys, [image, text("דרג את תמונת השיער.")])) });
+    }
+    const sys = `${common}
+דרג תמונת גוף מלא: overall, posture, shoulders, upperBody, core, lowerBody כפי שהם נראים בפוזה הזו. אסור להעריך אחוז שומן, מסת שריר, משקל או כוח. אל תאבחן עיוותי עמוד שדרה. הערות מעודדות והקשר לאימון ויציבה.${lang}`;
+    return analyzeResult("ratings", { scope: "body", ...(await parseWith(BodyRatingsSchema, sys, [image, text("דרג את תמונת הגוף.")])) });
+  }
 
   if (req.type === "face") {
     const prompt = `נתח את תמונת הפנים לצורך המלצות טיפוח וסטייל בלבד.

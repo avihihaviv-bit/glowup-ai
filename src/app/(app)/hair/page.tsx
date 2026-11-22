@@ -12,6 +12,7 @@ import { cn, dateKey, heDate, uid } from "@/lib/utils";
 import { Badge, Button, Card, Chip, EmptyState, ErrorBox, Field, Input, Modal, PageHeader, SectionTitle, Segmented, Spinner, Textarea } from "@/components/ui";
 import { ImageUploader } from "@/components/ImageUploader";
 import { AnalysisHistory, CloseResult, CopyButton, HairResult } from "@/components/results";
+import { PhotoRatings } from "@/components/PhotoRatings";
 import { HairIllustration } from "@/components/HairIllustration";
 import { StoredImage } from "@/components/StoredImage";
 
@@ -134,6 +135,7 @@ function Analysis() {
           </Card>
         </div>
       </div>
+      <PhotoRatings scope="hair" image={image} />
       <AnalysisHistory type="hair" onOpen={setRecord} />
     </div>
   );

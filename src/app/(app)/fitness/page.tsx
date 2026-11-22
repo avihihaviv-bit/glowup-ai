@@ -7,8 +7,10 @@ import { dateKey, heDate, heDayShort, lastNDays, uid, cn } from "@/lib/utils";
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, SectionTitle, Segmented, Select, Stat, Textarea } from "@/components/ui";
 import { TrendArea, WeeklyBars } from "@/components/charts";
 import { CheckinModal } from "@/components/CheckinModal";
+import { ImageUploader } from "@/components/ImageUploader";
+import { PhotoRatings } from "@/components/PhotoRatings";
 
-type Tab = "workouts" | "plan" | "strength" | "posture" | "sleep" | "nutrition" | "clothes";
+type Tab = "workouts" | "bodyRatings" | "plan" | "strength" | "posture" | "sleep" | "nutrition" | "clothes";
 
 const TYPE_LABEL: Record<Workout["type"], string> = { strength: "כוח", cardio: "אירובי", mobility: "גמישות", posture: "יציבה", sport: "ספורט" };
 
@@ -24,6 +26,7 @@ export default function FitnessPage() {
             onChange={setTab}
             options={[
               { value: "workouts", label: "אימונים" },
+              { value: "bodyRatings", label: "דירוג גוף" },
               { value: "plan", label: "תוכנית" },
               { value: "strength", label: "כוח" },
               { value: "posture", label: "יציבה" },
@@ -35,6 +38,7 @@ export default function FitnessPage() {
         </div>
       </div>
       {tab === "workouts" && <Workouts />}
+      {tab === "bodyRatings" && <BodyRatings />}
       {tab === "plan" && <WorkoutPlan />}
       {tab === "strength" && <Strength />}
       {tab === "posture" && <Posture />}
@@ -475,6 +479,22 @@ function Clothes() {
           </ul>
         </Card>
       ))}
+    </div>
+  );
+}
+
+function BodyRatings() {
+  const [image, setImage] = useState<Blob | null>(null);
+  return (
+    <div className="grid gap-4 lg:grid-cols-5">
+      <Card className="lg:col-span-2">
+        <SectionTitle>תמונת גוף מלא</SectionTitle>
+        <ImageUploader value={image} onChange={setImage} hint="עמידה טבעית, גוף מלא בפריים" tips={["לבוש צמוד או ספורטיבי", "אור יום, רקע פשוט", "מצלמה בגובה המותניים, במרחק 2-3 מטר", "צלמו תמיד באותם תנאים כדי לעקוב אחרי מגמה"]} />
+      </Card>
+      <div className="lg:col-span-3">
+        <PhotoRatings scope="body" image={image} />
+        <p className="mt-3 text-xs text-dim">אין הערכה של אחוז שומן, משקל, מסת שריר או כוח. הדירוג הוא התרשמות ויזואלית מהפוזה בתמונה בלבד.</p>
+      </div>
     </div>
   );
 }

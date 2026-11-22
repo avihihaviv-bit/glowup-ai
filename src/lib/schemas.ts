@@ -146,6 +146,50 @@ export type DailyTasksAI = z.infer<typeof DailyTasksSchema>;
 
 /* ---------- Request bodies (validated on the server) ---------- */
 
+/* ---------- Photo ratings (adults, opt-in personal mode) ---------- */
+
+const RatingItem = z.object({
+  score: z.number().int().min(0).max(100),
+  note: z.string().describe("One short sentence: what this score reflects in THIS photo"),
+  tip: z.string().describe("One realistic thing to try (grooming, routine, training, lighting)"),
+});
+const base = {
+  photoUsable: z.boolean().describe("false if the photo is too dark/blurry/cropped/angled to rate; then every score is 0"),
+  photoQuality: z.enum(["low", "ok", "good"]),
+  summary: z.string().describe("Two warm, realistic sentences. Say these are subjective estimates from one photo and shift with lighting, angle and pose."),
+};
+export const FaceRatingsSchema = z.object({
+  ...base,
+  overall: RatingItem,
+  potential: RatingItem.describe("Glow-up potential: how much visible grooming, skin, hair and style changes could improve this photo"),
+  jawline: RatingItem,
+  cheekbones: RatingItem,
+  skin: RatingItem,
+  grooming: RatingItem,
+  presentation: RatingItem.nullable().describe("How strongly the features read as masculine (male profile) or feminine (female profile) in this photo. null for other profiles"),
+});
+export const HairRatingsSchema = z.object({
+  ...base,
+  overall: RatingItem,
+  condition: RatingItem.describe("Visible dryness, frizz, shine, scalp visibility"),
+  volume: RatingItem,
+  styleFit: RatingItem.describe("How well the current cut/style suits the visible face shape"),
+  neatness: RatingItem,
+});
+export const BodyRatingsSchema = z.object({
+  ...base,
+  overall: RatingItem,
+  posture: RatingItem,
+  shoulders: RatingItem,
+  upperBody: RatingItem.describe("Visible chest/back/arm development in this pose"),
+  core: RatingItem,
+  lowerBody: RatingItem,
+});
+export type FaceRatings = z.infer<typeof FaceRatingsSchema>;
+export type HairRatings = z.infer<typeof HairRatingsSchema>;
+export type BodyRatings = z.infer<typeof BodyRatingsSchema>;
+export type PhotoRatings = FaceRatings | HairRatings | BodyRatings;
+
 /* ---------- Concerns ---------- */
 
 export const ConcernAnalysisSchema = z.object({
@@ -199,6 +243,7 @@ const ImagePayload = z.object({
 
 export const AnalyzeRequest = z.discriminatedUnion("type", [
   z.object({ type: z.literal("face"), image: ImagePayload, profile: ProfileContext.optional(), wearsGlasses: z.boolean().optional() }),
+  z.object({ type: z.literal("ratings"), scope: z.enum(["face", "hair", "body"]), image: ImagePayload, profile: ProfileContext.optional() }),
   z.object({ type: z.literal("hair"), image: ImagePayload, profile: ProfileContext.optional(), faceShape: z.string().max(30).optional() }),
   z.object({ type: z.literal("style"), image: ImagePayload, profile: ProfileContext.optional(), occasion: z.string().max(100).optional() }),
   z.object({

@@ -131,6 +131,19 @@ export default function SettingsPage() {
 
         <div className="space-y-4">
           <Card>
+            <SectionTitle>מצב אישי (18+)</SectionTitle>
+            <label className="flex items-start gap-3 text-sm">
+              <input type="checkbox" className="mt-0.5 size-5" checked={s.advancedRatings} disabled={profile.age < 18} onChange={(e) => s.setAdvancedRatings(e.target.checked)} />
+              <span>
+                הפעלת דירוגים מספריים לפנים, לשיער ולגוף מתמונה (עם AI מחובר).
+                <span className="mt-1 block text-xs text-dim">
+                  הציונים הם הערכה סובייקטיבית מתמונה אחת ואינם מדד מדעי או ערך של אדם. כבוי כברירת מחדל, וזמין רק מגיל 18.
+                </span>
+              </span>
+            </label>
+          </Card>
+
+          <Card>
             <SectionTitle>{t("set.language")}</SectionTitle>
             <div className="flex gap-2">
               <Chip active={lang === "he"} onClick={() => s.setLang("he")}>

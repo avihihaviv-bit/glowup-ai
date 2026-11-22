@@ -49,8 +49,11 @@ Last updated after: foundation + onboarding + My Concerns + priorities (phases 2
 | Smart progress | 🟡 | Charts, streaks, photo comparison |
 | Settings & privacy | 🟡 | Export, delete photos/all data, language, theme. No account deletion (no accounts), notification settings, or minor-specific consent flow beyond a notice |
 
+## Photo ratings (personal mode)
+Face (overall, potential, jawline, cheekbones, skin, grooming, masculinity/femininity), hair and body ratings with a note and one tip per score, photo-quality badge, score trend across scans and share. Needs real AI, 18+ only, and the "personal mode" switch in Settings (off by default). Demo mode never shows scores. Verified: age gate (client and server), switch gating, tile rendering and trend with sample data. **Not verified with real AI output** (no API key available). Body ratings never estimate body fat, weight, muscle mass or strength.
+
 ## Safety rules enforced
-No attractiveness/PSL/beauty scores, no ancestry/age/health prediction from photos, no diagnosis, no body-fat estimates, no extreme diets, no XP for appearance or weight.
+No ancestry/age/health prediction from photos, no diagnosis, no body-fat estimates, no extreme diets, no XP for appearance or weight. Numeric photo ratings only for adults who enabled personal mode.
 
 ## Verified by automated browser test (mobile viewport)
 Onboarding in English and Hebrew, exact-age calculation, form validation, concern creation and demo analysis, status change, progress logging, priorities and manual override, RTL/LTR switching with persistence after reload, no horizontal overflow, no console errors. Real AI calls are **not** tested end to end (no API key available).

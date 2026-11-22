@@ -38,9 +38,11 @@ interface State {
   lang: Lang;
   concerns: Concern[];
   priorityPins: string[];
+  advancedRatings: boolean;
 }
 
 interface Actions {
+  setAdvancedRatings: (v: boolean) => void;
   setLang: (l: Lang) => void;
   addConcern: (c: Concern) => void;
   updateConcern: (id: string, patch: Partial<Concern>) => void;
@@ -96,6 +98,7 @@ const initial: State = {
   lang: "he",
   concerns: [],
   priorityPins: [],
+  advancedRatings: false,
 };
 
 export const useStore = create<State & Actions>()(
@@ -103,6 +106,7 @@ export const useStore = create<State & Actions>()(
     (set, get) => ({
       ...initial,
       setLang: (lang) => set({ lang }),
+      setAdvancedRatings: (advancedRatings) => set({ advancedRatings }),
       addConcern: (c) => set((s) => ({ concerns: [c, ...s.concerns] })),
       updateConcern: (id, patch) => set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
       setConcernStatus: (id, status) => set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, status } : c)) })),
