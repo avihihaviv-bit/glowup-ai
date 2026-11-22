@@ -58,7 +58,6 @@ export default function Onboarding() {
   const setLang = useStore((s) => s.setLang);
   const addConcern = useStore((s) => s.addConcern);
   const importData = useStore((s) => s.importData);
-  const theme = useStore((s) => s.theme);
 
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -83,9 +82,6 @@ export default function Onboarding() {
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
   useEffect(() => {
     if (mounted && existing && !busy) router.replace("/");
   }, [mounted, existing, router, busy]);
@@ -174,7 +170,7 @@ export default function Onboarding() {
     <div className="glow-bg flex min-h-dvh flex-col items-center px-4 py-8">
       <div className="mb-6 flex w-full max-w-xl items-center justify-between">
         <div className="flex items-center gap-2.5" dir="ltr">
-          <div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-accent to-green text-black">
+          <div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-accent to-green text-white">
             <Sparkles className="size-5" />
           </div>
           <span className="text-xl font-extrabold tracking-wide">
@@ -458,7 +454,7 @@ export default function Onboarding() {
 
             {step === 6 && (
               <div className="flex flex-col items-center py-6 text-center">
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 3, ease: "linear" }} className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-accent to-green text-black">
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 3, ease: "linear" }} className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-accent to-green text-white">
                   <Wand2 className="size-7" />
                 </motion.div>
                 <h2 className="mt-5 text-xl font-semibold">{t("ob.plan.title")}</h2>

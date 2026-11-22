@@ -7,6 +7,21 @@ type Dict = Record<string, string>;
 
 const he: Dict = {
   // nav
+  "nav.group.main": "ראשי",
+  "nav.group.analysis": "ניתוח וטיפוח",
+  "nav.group.track": "מעקב",
+  "nav.collapse": "כיווץ תפריט",
+  "nav.expand": "הרחבת תפריט",
+  "nav.scan": "סריקה",
+  "top.notifications": "התראות",
+  "top.noNotifications": "אין התראות חדשות",
+  "top.level": "רמה",
+  "top.streak": "ימים ברצף",
+  "notif.checkin": "עוד לא עשית Check-in היום",
+  "notif.concern": "יש דאגות שעוד לא נותחו",
+  "notif.scan": "עוד לא ביצעת סריקת פנים",
+  "notif.plan": "אין תוכנית פעילה",
+  "notif.demo": "AI לא מחובר: האפליקציה במצב דמו",
   "nav.home": "בית",
   "nav.plan": "תוכנית 30 יום",
   "nav.planShort": "תוכנית",
@@ -258,6 +273,21 @@ const he: Dict = {
 };
 
 const en: Dict = {
+  "nav.group.main": "Main",
+  "nav.group.analysis": "Analysis & care",
+  "nav.group.track": "Tracking",
+  "nav.collapse": "Collapse menu",
+  "nav.expand": "Expand menu",
+  "nav.scan": "Scan",
+  "top.notifications": "Notifications",
+  "top.noNotifications": "No new notifications",
+  "top.level": "Level",
+  "top.streak": "day streak",
+  "notif.checkin": "You haven't checked in today",
+  "notif.concern": "Some concerns haven't been analyzed",
+  "notif.scan": "You haven't done a face scan yet",
+  "notif.plan": "No active plan",
+  "notif.demo": "AI is not connected: demo mode",
   "nav.home": "Home",
   "nav.plan": "30-Day Plan",
   "nav.planShort": "Plan",

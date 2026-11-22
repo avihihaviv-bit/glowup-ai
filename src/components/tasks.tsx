@@ -5,6 +5,7 @@ import { Check, ChevronDown, Clock, Trash2 } from "lucide-react";
 import type { PlanTask } from "@/lib/types";
 import { CATEGORY_META, cn, dateKey } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { importanceOf } from "@/lib/plan";
 
 export function TaskItem({ task, date = dateKey(), compact }: { task: PlanTask; date?: string; compact?: boolean }) {
   const done = useStore((s) => (s.completions[date] ?? []).includes(task.id));
@@ -13,14 +14,14 @@ export function TaskItem({ task, date = dateKey(), compact }: { task: PlanTask; 
   const [open, setOpen] = useState(false);
   const meta = CATEGORY_META[task.category];
   return (
-    <motion.div layout className={cn("rounded-xl border bg-surface-2/60 transition", done ? "border-green/30" : "border-line")}>
+    <motion.div layout className={cn("rounded-2xl border bg-white transition", done ? "border-green/30" : "border-line")}>
       <div className="flex items-center gap-3 p-3">
         <button
           onClick={() => toggle(task.id, date)}
           aria-label={done ? "סמן כלא בוצע" : "סמן כבוצע"}
           className={cn(
             "grid size-7 shrink-0 place-items-center rounded-lg border-2 transition",
-            done ? "border-green bg-green text-black" : "border-line-strong hover:border-accent",
+            done ? "border-green bg-green text-white" : "border-line-strong hover:border-accent",
           )}
         >
           <AnimatePresence>
@@ -44,6 +45,11 @@ export function TaskItem({ task, date = dateKey(), compact }: { task: PlanTask; 
               </span>
             )}
             {task.custom && <span className="text-accent">• מהמאמן</span>}
+            {!compact && (
+              <span className={cn("rounded-full px-1.5 py-px text-[10px] font-medium", { high: "bg-accent-soft text-accent-strong", medium: "bg-surface-3 text-muted", low: "bg-surface-2 text-dim" }[importanceOf(task)])}>
+                {{ high: "חשוב", medium: "בינוני", low: "רשות" }[importanceOf(task)]}
+              </span>
+            )}
           </div>
         </button>
         {!compact && (

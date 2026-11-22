@@ -39,9 +39,28 @@ interface State {
   concerns: Concern[];
   priorityPins: string[];
   advancedRatings: boolean;
+  sidebarCollapsed: boolean;
+  hiddenWidgets: string[];
+  bodyMetrics: BodyMetric[];
+}
+
+export interface BodyMetric {
+  id: string;
+  date: string;
+  weightKg?: number;
+  bodyFatPct?: number; // user-measured (scale, caliper, DEXA) — never estimated by the app
+  waistCm?: number;
+  chestCm?: number;
+  armCm?: number;
+  thighCm?: number;
+  note?: string;
 }
 
 interface Actions {
+  setSidebarCollapsed: (v: boolean) => void;
+  toggleWidget: (id: string) => void;
+  addBodyMetric: (m: BodyMetric) => void;
+  removeBodyMetric: (id: string) => void;
   setAdvancedRatings: (v: boolean) => void;
   setLang: (l: Lang) => void;
   addConcern: (c: Concern) => void;
@@ -94,11 +113,14 @@ const initial: State = {
   photos: [],
   coach: [],
   manualFaceShape: null,
-  theme: "dark",
+  theme: "light",
   lang: "he",
   concerns: [],
   priorityPins: [],
   advancedRatings: false,
+  sidebarCollapsed: false,
+  hiddenWidgets: [],
+  bodyMetrics: [],
 };
 
 export const useStore = create<State & Actions>()(
@@ -107,6 +129,10 @@ export const useStore = create<State & Actions>()(
       ...initial,
       setLang: (lang) => set({ lang }),
       setAdvancedRatings: (advancedRatings) => set({ advancedRatings }),
+      setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+      toggleWidget: (id) => set((s) => ({ hiddenWidgets: s.hiddenWidgets.includes(id) ? s.hiddenWidgets.filter((w) => w !== id) : [...s.hiddenWidgets, id] })),
+      addBodyMetric: (m) => set((s) => ({ bodyMetrics: [...s.bodyMetrics, m].sort((a, b) => a.date.localeCompare(b.date)) })),
+      removeBodyMetric: (id) => set((s) => ({ bodyMetrics: s.bodyMetrics.filter((m) => m.id !== id) })),
       addConcern: (c) => set((s) => ({ concerns: [c, ...s.concerns] })),
       updateConcern: (id, patch) => set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
       setConcernStatus: (id, status) => set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, status } : c)) })),

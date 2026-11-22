@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Moon, Sun, Download, Upload, Trash2, ImageOff, ShieldCheck, Sparkles, FlaskConical, Check } from "lucide-react";
+import { Settings, Download, Upload, Trash2, ImageOff, ShieldCheck, Sparkles, FlaskConical, Check } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useAIStatus } from "@/lib/api";
 import { saveImage, deleteImage } from "@/lib/images";
@@ -156,21 +156,6 @@ export default function SettingsPage() {
             <p className="mt-2 text-xs text-dim">{t("set.languageNote")}</p>
           </Card>
 
-          <Card>
-            <SectionTitle>תצוגה</SectionTitle>
-            <div className="flex gap-2">
-              <Chip active={s.theme === "dark"} onClick={() => s.setTheme("dark")}>
-                <span className="flex items-center gap-1.5">
-                  <Moon className="size-4" /> כהה
-                </span>
-              </Chip>
-              <Chip active={s.theme === "light"} onClick={() => s.setTheme("light")}>
-                <span className="flex items-center gap-1.5">
-                  <Sun className="size-4" /> בהיר
-                </span>
-              </Chip>
-            </div>
-          </Card>
 
           <Card>
             <SectionTitle action={ai.loading ? null : ai.aiEnabled ? <Badge tone="green">מחובר</Badge> : <Badge tone="warn">מצב דמו</Badge>}>

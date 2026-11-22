@@ -13,7 +13,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-line bg-surface p-5 shadow-card backdrop-blur-xl",
+        "rounded-[22px] border border-line bg-surface p-5 shadow-card backdrop-blur-xl",
         interactive && "transition hover:-translate-y-0.5 hover:border-line-strong",
         className,
       )}
@@ -41,10 +41,10 @@ export const Button = forwardRef<
         size === "lg" && "h-12 px-6 text-base",
         variant === "primary" &&
           "bg-gradient-to-l from-accent-strong to-accent text-white shadow-[0_8px_30px_-10px_var(--accent-strong)] hover:brightness-110",
-        variant === "secondary" && "border border-line bg-surface-2 text-fg hover:bg-surface-3",
+        variant === "secondary" && "border border-line bg-white text-fg shadow-sm hover:bg-surface-2",
         variant === "ghost" && "text-muted hover:bg-surface-2 hover:text-fg",
         variant === "danger" && "border border-danger/30 bg-danger/10 text-danger hover:bg-danger/20",
-        variant === "green" && "bg-green text-black hover:brightness-110",
+        variant === "green" && "bg-green text-white hover:brightness-105",
         className,
       )}
       {...rest}
@@ -63,7 +63,7 @@ export function Badge({ children, tone = "default", className }: { children: Rea
         tone === "default" && "bg-surface-2 text-muted",
         tone === "accent" && "bg-accent-soft text-accent",
         tone === "green" && "bg-green-soft text-green",
-        tone === "warn" && "bg-warn/10 text-warn",
+        tone === "warn" && "bg-warn-bg text-warn",
         tone === "danger" && "bg-danger/10 text-danger",
         className,
       )}
@@ -96,8 +96,8 @@ export function Ring({ value, size = 140, stroke = 12, children }: { value: numb
       <svg width={size} height={size} className="-rotate-90">
         <defs>
           <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--accent)" />
-            <stop offset="100%" stopColor="var(--green)" />
+            <stop offset="0%" stopColor="var(--cyan)" />
+            <stop offset="100%" stopColor="var(--accent)" />
           </linearGradient>
         </defs>
         <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--surface-3)" strokeWidth={stroke} fill="none" />
@@ -170,7 +170,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
     <AnimatePresence>
       {open && (
         <motion.div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-[#172b4d]/35 backdrop-blur-sm" onClick={onClose} />
           <motion.div
             role="dialog"
             aria-modal="true"

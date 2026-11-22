@@ -274,3 +274,11 @@ export function levelFor(xp: number) {
 }
 
 export const XP = { task: 10, checkin: 15, workout: 25, analysis: 20, photo: 5 };
+
+/** Simple, transparent importance heuristic for display (not a judgment of the user). */
+export function importanceOf(t: PlanTask): "high" | "medium" | "low" {
+  if (t.custom) return "medium";
+  if (t.frequency === "daily" && (t.category === "skin" || t.category === "sleep")) return "high";
+  if (t.frequency === "daily" || t.frequency === "once") return "medium";
+  return "low";
+}

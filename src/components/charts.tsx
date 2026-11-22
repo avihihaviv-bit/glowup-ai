@@ -21,7 +21,7 @@ export function WeeklyBars({ data, highlightLast = true, unit = "%" }: { data: {
           <Tooltip cursor={{ fill: "var(--surface-2)" }} contentStyle={tooltipStyle} formatter={(v) => [`${v}${unit}`, ""]} separator="" />
           <Bar dataKey="value" radius={[6, 6, 2, 2]} maxBarSize={28}>
             {data.map((_, i) => (
-              <Cell key={i} fill={highlightLast && i === data.length - 1 ? "var(--green)" : "var(--accent)"} fillOpacity={highlightLast && i === data.length - 1 ? 1 : 0.75} />
+              <Cell key={i} fill={highlightLast && i === data.length - 1 ? "var(--accent)" : "var(--cyan)"} fillOpacity={highlightLast && i === data.length - 1 ? 1 : 0.85} />
             ))}
           </Bar>
         </BarChart>

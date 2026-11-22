@@ -132,7 +132,7 @@ export default function CoachPage() {
         <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
           {messages.length === 0 && (
             <div className="flex min-h-full flex-col items-center justify-center py-2 text-center">
-              <div className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-accent to-green text-black">
+              <div className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-accent to-green text-white">
                 <Sparkles className="size-7" />
               </div>
               <h2 className="mt-4 text-lg font-semibold">היי {profile.name}, במה נתמקד היום?</h2>
@@ -151,7 +151,7 @@ export default function CoachPage() {
               <div
                 className={cn(
                   "max-w-[88%] rounded-2xl px-4 py-3 sm:max-w-[75%]",
-                  m.role === "user" ? "rounded-tr-sm bg-gradient-to-l from-accent-strong to-accent text-black" : "rounded-tl-sm border border-line bg-surface-2",
+                  m.role === "user" ? "rounded-tr-sm bg-gradient-to-l from-accent-strong to-accent text-white" : "rounded-tl-sm border border-line bg-surface-2",
                 )}
               >
                 {m.role === "user" ? (

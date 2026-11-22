@@ -2,48 +2,29 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-:root,
-[data-theme="dark"] {
-  --bg: #09090d;
-  --bg-elev: #0f0f15;
-  --surface: rgba(20, 20, 28, 0.78);
-  --surface-2: #1a1a24;
-  --surface-3: #232330;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --text: #f5f5f8;
-  --text-muted: #a4a4b2;
-  --text-dim: #6e6e7e;
-  --accent: #9865ff;
-  --accent-strong: #7f45ff;
-  --accent-soft: rgba(152, 101, 255, 0.14);
-  --green: #8bff9b;
-  --green-soft: rgba(139, 255, 155, 0.12);
-  --warn: #fbbf24;
-  --danger: #f87171;
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 48px -28px rgba(0, 0, 0, 0.9);
-  color-scheme: dark;
-}
-
-[data-theme="light"] {
-  --bg: #f6f6f8;
+:root {
+  /* Blue & white identity */
+  --bg: #f5f9ff;
   --bg-elev: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f2f1f6;
-  --surface-3: #e9e7f0;
-  --border: #e5e3ec;
-  --border-strong: #d4d1de;
-  --text: #121216;
-  --text-muted: #5b5b68;
-  --text-dim: #8d8d99;
-  --accent: #7c5cf0;
-  --accent-strong: #6a46ea;
-  --accent-soft: rgba(124, 92, 240, 0.1);
-  --green: #16a361;
-  --green-soft: rgba(22, 163, 97, 0.1);
-  --warn: #c58a06;
-  --danger: #dc2626;
-  --shadow: 0 1px 2px rgba(20, 20, 40, 0.04), 0 12px 32px -20px rgba(20, 20, 40, 0.18);
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-2: #f3f7fd;
+  --surface-3: #e7eef9;
+  --border: #e4ecf7;
+  --border-strong: #cfdcee;
+  --text: #172b4d;
+  --text-muted: #5c6d87;
+  --text-dim: #72829b;
+  --accent: #2878f0;
+  --accent-strong: #174ea6;
+  --accent-soft: #dcebff;
+  --cyan: #8dd8ff;
+  --green: #27b98a;
+  --green-soft: rgba(39, 185, 138, 0.12);
+  --warn: #c98a12;
+  --warn-bg: rgba(242, 184, 75, 0.16);
+  --danger: #d64545;
+  --shadow: 0 1px 2px rgba(23, 43, 77, 0.04), 0 12px 32px -18px rgba(23, 78, 166, 0.22);
+  --shadow-lg: 0 2px 6px rgba(23, 43, 77, 0.05), 0 30px 60px -28px rgba(23, 78, 166, 0.35);
   color-scheme: light;
 }
 
@@ -63,10 +44,13 @@
   --color-accent-soft: var(--accent-soft);
   --color-green: var(--green);
   --color-green-soft: var(--green-soft);
+  --color-cyan: var(--cyan);
+  --color-warn-bg: var(--warn-bg);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
-  --font-sans: var(--font-heebo), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-sans: var(--font-inter), var(--font-heebo), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --shadow-card: var(--shadow);
+  --shadow-lift: var(--shadow-lg);
 }
 
 html,
@@ -92,27 +76,16 @@ body {
 
 .glow-bg {
   background:
-    radial-gradient(900px 520px at 85% -10%, rgba(152, 101, 255, 0.16), transparent 60%),
-    radial-gradient(700px 420px at 0% 110%, rgba(139, 255, 155, 0.06), transparent 60%);
-}
-
-[data-theme="light"] .glow-bg {
-  background:
-    radial-gradient(900px 500px at 85% -10%, rgba(124, 92, 240, 0.08), transparent 60%),
-    radial-gradient(700px 400px at 0% 110%, rgba(22, 163, 97, 0.05), transparent 60%);
+    radial-gradient(1000px 520px at 85% -12%, rgba(141, 216, 255, 0.35), transparent 60%),
+    radial-gradient(800px 480px at -10% 110%, rgba(40, 120, 240, 0.10), transparent 60%),
+    var(--bg);
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, var(--accent) 0%, #e9d5ff 50%, var(--green) 100%);
+  background: linear-gradient(90deg, var(--accent-strong) 0%, var(--accent) 55%, #49b6f5 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-[data-theme="light"] .text-gradient {
-  background: linear-gradient(90deg, var(--accent-strong), #a855f7 55%, var(--green));
-  -webkit-background-clip: text;
-  background-clip: text;
 }
 
 .prose-coach p {
@@ -159,10 +132,24 @@ input[type="range"] {
   position: absolute;
   inset: 0;
   transform: translateX(100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
   animation: shimmer 1.4s infinite;
 }
 
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Animated scan line used on scan visuals */
+@keyframes scanline {
+  0% { transform: translateY(-10%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(110%); opacity: 0; }
+}
+.scanline {
+  animation: scanline 2.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scanline { animation: none; opacity: 0; }
 }

@@ -9,8 +9,9 @@ import { TrendArea, WeeklyBars } from "@/components/charts";
 import { CheckinModal } from "@/components/CheckinModal";
 import { ImageUploader } from "@/components/ImageUploader";
 import { PhotoRatings } from "@/components/PhotoRatings";
+import { BodyMetrics } from "@/components/BodyMetrics";
 
-type Tab = "workouts" | "bodyRatings" | "plan" | "strength" | "posture" | "sleep" | "nutrition" | "clothes";
+type Tab = "workouts" | "metrics" | "bodyRatings" | "plan" | "strength" | "posture" | "sleep" | "nutrition" | "clothes";
 
 const TYPE_LABEL: Record<Workout["type"], string> = { strength: "כוח", cardio: "אירובי", mobility: "גמישות", posture: "יציבה", sport: "ספורט" };
 
@@ -26,6 +27,7 @@ export default function FitnessPage() {
             onChange={setTab}
             options={[
               { value: "workouts", label: "אימונים" },
+              { value: "metrics", label: "המדדים שלי" },
               { value: "bodyRatings", label: "דירוג גוף" },
               { value: "plan", label: "תוכנית" },
               { value: "strength", label: "כוח" },
@@ -38,6 +40,7 @@ export default function FitnessPage() {
         </div>
       </div>
       {tab === "workouts" && <Workouts />}
+      {tab === "metrics" && <BodyMetrics />}
       {tab === "bodyRatings" && <BodyRatings />}
       {tab === "plan" && <WorkoutPlan />}
       {tab === "strength" && <Strength />}
