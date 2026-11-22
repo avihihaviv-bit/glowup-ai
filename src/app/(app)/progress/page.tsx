@@ -11,6 +11,7 @@ import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Progr
 import { StoredImage } from "@/components/StoredImage";
 import { TrendArea, WeeklyBars } from "@/components/charts";
 import { ImageUploader } from "@/components/ImageUploader";
+import { RatingsCard } from "@/components/RatingsCard";
 
 export default function ProgressPage() {
   const s = useStore();
@@ -88,6 +89,8 @@ export default function ProgressPage() {
           <div className="mt-1 text-[11px] text-dim">14 הימים האחרונים</div>
         </Card>
       </div>
+
+      <RatingsCard />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MiniStat icon={<Trophy className="size-4" />} label="משימות שהושלמו" value={totalTasks} />
