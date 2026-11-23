@@ -2,17 +2,17 @@
 
 Legend: ✅ implemented and tested · 🟡 partial · ⚙️ needs external configuration · ⬜ not started
 
-Last updated after: Blue 3D redesign, Phase 1 (design system, collapsible sidebar, top bar with notifications, new dashboard, user-entered body measurements).
+Last updated after: Phase 6 (progress center: weekly report, habit heatmap, scan history, photo quality coach).
 
 ## Blue redesign roadmap
 | Phase | Status |
 |---|---|
 | 1. Design system (blue/white, Inter + Heebo), collapsible sidebar, top bar (date, streak, level, notifications), dashboard (hero scan card, score with calculation breakdown, today's checklist with importance, smart recommendation, tip of the day, routine, recent analysis, saved products, timeline, customizable widgets) | ✅ |
-| 2. Face scan: guided front/left/right capture, in-browser 2D landmarks (MediaPipe), landmark overlay and labeled 3D approximation (Three.js), 14 analysis cards, Face Profile Card export, scan comparison | ⬜ |
-| 3. Skin (4 areas), hair (4 angles), Hairstyle Studio with real image generation, grooming, debloat, oral care, fragrance | ⬜ (hair preview needs an image-generation API key) |
-| 4. 350+ tip library with evidence labels and verified sources, search/filters/favorites | 🟡 22 grooming/style tips seeded, structure ready |
-| 5. Outing Mode, product scanner (Open Beauty Facts), outfit studio, barber brief, morning reset, weather (Open-Meteo) | ⬜ |
-| 6. Progress center, heatmap, weekly report, polish | ⬜ |
+| 2. Face scan: guided front/left/right capture, in-browser 2D landmarks (MediaPipe), landmark overlay and labeled 3D approximation (Three.js), 14 analysis cards, Face Profile Card export, scan comparison | ✅ (3D view is a labeled approximation from 2D landmarks; the 14 AI cards need ANTHROPIC_API_KEY, otherwise only on-device measurements are shown) |
+| 3. Skin (4 areas), hair (4 angles), Hairstyle Studio with real image generation, grooming, debloat, oral care, fragrance | ✅ (Hairstyle Studio preview ⚙️ needs OPENAI_API_KEY; skin scan needs ANTHROPIC_API_KEY) |
+| 4. 350+ tip library with evidence labels and verified sources, search/filters/favorites | ✅ 350 tips (250 daily + 100 outing), every "evidence" tip links a verified source |
+| 5. Outing Mode, product scanner (Open Beauty Facts), outfit studio, barber brief, morning reset, weather (Open-Meteo) | ✅ (product label reading ⚙️ needs ANTHROPIC_API_KEY; database lookup and weather work without a key) |
+| 6. Progress center, heatmap, weekly report (PNG export), scan history, photo quality coach (on-device), polish | ✅ |
 
 User-entered body measurements (weight, measured body-fat % for adults, circumferences) with trend chart: ✅. Nothing is estimated from photos and there are no weight targets.
 
