@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { Scissors, Check, Clock } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { daysBetween, dateKey, heDate, cn } from "@/lib/utils";
+import { addDays, daysBetween, dateKey, heDate, cn } from "@/lib/utils";
 import { Badge, Button, Card, PageHeader, ProgressBar, SectionTitle } from "@/components/ui";
 import { SourceLinks } from "@/components/SourceLinks";
 
@@ -48,6 +48,31 @@ export default function GroomingPage() {
     [log, today, gender],
   );
   const dueNow = rows.filter((r) => r.due);
+  const dentist = useStore((s) => s.dentist);
+  const outings = useStore((s) => s.outings);
+  const calendar = useMemo(() => {
+    const ev: { date: string; title: string }[] = [];
+    const end = addDays(today, 30);
+    for (const r of rows) {
+      let d = r.last ? addDays(r.last, r.everyDays) : today;
+      if (d < today) d = today;
+      while (d <= end) {
+        ev.push({ date: d, title: r.title });
+        d = addDays(d, r.everyDays);
+      }
+    }
+    if (dentist.lastVisit) {
+      const next = addDays(dentist.lastVisit, Math.round(dentist.intervalMonths * 30.4));
+      if (next <= end) ev.push({ date: next < today ? today : next, title: "ביקור אצל רופא שיניים" });
+    }
+    for (const o of outings) {
+      const d = o.start.slice(0, 10);
+      if (d >= today && d <= end) ev.push({ date: d, title: `אירוע: ${o.title}` });
+    }
+    const by = new Map<string, string[]>();
+    for (const e of ev.sort((a, b) => a.date.localeCompare(b.date))) by.set(e.date, [...(by.get(e.date) ?? []), e.title]);
+    return [...by.entries()].slice(0, 14);
+  }, [rows, today, dentist, outings]);
 
   return (
     <div className="space-y-6">
@@ -89,6 +114,22 @@ export default function GroomingPage() {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <SectionTitle>לוח טיפוח ל-30 הימים הקרובים</SectionTitle>
+        {calendar.length ? (
+          <ul className="divide-y divide-line">
+            {calendar.map(([d, titles]) => (
+              <li key={d} className="flex gap-4 py-2.5 text-sm">
+                <span className={cn("w-20 shrink-0 font-semibold", d === today ? "text-accent" : "text-fg")}>{d === today ? "היום" : heDate(d)}</span>
+                <span className="text-muted">{titles.join(" · ")}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted">אין פריטים מתוכננים.</p>
+        )}
+      </Card>
 
       <Card>
         <SectionTitle>גילוח בלי גירוי</SectionTitle>

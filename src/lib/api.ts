@@ -90,6 +90,18 @@ export function progressContext() {
     faceShape: lastFace?.result?.faceShape?.shape ?? s.manualFaceShape ?? undefined,
     favoriteHaircuts: s.favorites.slice(0, 5),
     likedProducts: s.products.filter((p) => p.liked).map((p) => p.name).slice(0, 8),
+    savedProducts: s.products.map((p) => `${p.name} (${p.category})`).slice(0, 12),
+    scannedProducts: s.scannedProducts.map((p) => `${p.brand} ${p.name}`.trim()).slice(0, 8),
+    lastFaceScan: s.scans[0] ? { date: s.scans[0].date, faceShapeGuess: s.scans[0].observations?.shapeGuess, hasAIReport: !!s.scans[0].report } : null,
+    openConcerns: s.concerns.filter((c) => c.status !== "completed").map((c) => `${c.title} [${c.category}, ${c.status}]`).slice(0, 6),
+    upcomingEvent: (() => {
+      const o = s.outings.find((x) => new Date(x.start).getTime() > Date.now());
+      return o ? { title: o.title, type: o.type, start: o.start, indoor: o.indoor, weather: o.weather } : null;
+    })(),
+    fragrances: s.fragrances.map((f) => `${f.name} (${f.concentration})`).slice(0, 6),
+    favoriteTips: s.tipFavorites.slice(0, 10),
+    oralToday: s.oral[today] ?? null,
+    location: s.location?.name ?? null,
   };
   return JSON.stringify(ctx);
 }

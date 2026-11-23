@@ -26,6 +26,12 @@ import {
   SprayCan,
   Waves,
   Library,
+  IdCard,
+  Sunrise,
+  PartyPopper,
+  Palette,
+  ScanBarcode,
+  Siren,
   type LucideIcon,
 } from "lucide-react";
 import { useStore, computeXP, computeStreak } from "@/lib/store";
@@ -54,23 +60,34 @@ export const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
       { href: "/face", key: "nav.face", short: "nav.scan", icon: ScanFace },
       { href: "/skin", key: "nav.skin", icon: Droplets },
       { href: "/hair", key: "nav.hair", icon: Scissors },
-      { href: "/style", key: "nav.style", icon: Shirt },
+      { href: "/barber", key: "nav.barber", icon: IdCard },
       { href: "/fitness", key: "nav.fitness", icon: Dumbbell },
     ],
   },
   {
     key: "nav.group.care",
     items: [
+      { href: "/morning", key: "nav.morning", icon: Sunrise },
       { href: "/grooming", key: "nav.grooming", icon: Brush },
       { href: "/oral", key: "nav.oral", icon: Smile },
       { href: "/fragrance", key: "nav.fragrance", icon: SprayCan },
       { href: "/debloat", key: "nav.debloat", icon: Waves },
-      { href: "/tips", key: "nav.tips", icon: Library },
+    ],
+  },
+  {
+    key: "nav.group.out",
+    items: [
+      { href: "/outing", key: "nav.outing", icon: PartyPopper },
+      { href: "/outfits", key: "nav.outfits", icon: Shirt },
+      { href: "/style", key: "nav.style", icon: Palette },
+      { href: "/scanner", key: "nav.scanner", icon: ScanBarcode },
+      { href: "/quickfix", key: "nav.quickfix", icon: Siren },
     ],
   },
   {
     key: "nav.group.track",
     items: [
+      { href: "/tips", key: "nav.tips", icon: Library },
       { href: "/progress", key: "nav.progress", icon: TrendingUp },
       { href: "/settings", key: "nav.settings", icon: Settings },
     ],

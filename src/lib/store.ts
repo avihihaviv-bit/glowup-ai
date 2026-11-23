@@ -7,6 +7,11 @@ import type {
   CoachMessage,
   Concern,
   FaceScan,
+  OutingPlan,
+  WardrobeItem,
+  Outfit,
+  BarberBrief,
+  ScannedProduct,
   ConcernStatus,
   DebloatEntry,
   Fragrance,
@@ -57,6 +62,12 @@ interface State {
   tipFavorites: string[];
   tipHidden: string[];
   tipDone: Record<string, string[]>; // tip id -> dates completed
+  outings: OutingPlan[];
+  location: { name: string; lat: number; lon: number } | null;
+  wardrobe: WardrobeItem[];
+  outfits: Outfit[];
+  barberBriefs: BarberBrief[];
+  scannedProducts: ScannedProduct[];
 }
 
 export interface BodyMetric {
@@ -76,6 +87,18 @@ interface Actions {
   toggleWidget: (id: string) => void;
   addBodyMetric: (m: BodyMetric) => void;
   removeBodyMetric: (id: string) => void;
+  addOuting: (o: OutingPlan) => void;
+  updateOuting: (id: string, patch: Partial<OutingPlan>) => void;
+  removeOuting: (id: string) => void;
+  setLocation: (l: { name: string; lat: number; lon: number } | null) => void;
+  upsertWardrobe: (w: WardrobeItem) => void;
+  removeWardrobe: (id: string) => void;
+  upsertOutfit: (o: Outfit) => void;
+  removeOutfit: (id: string) => void;
+  addBarberBrief: (b: BarberBrief) => void;
+  removeBarberBrief: (id: string) => void;
+  addScannedProduct: (p: ScannedProduct) => void;
+  removeScannedProduct: (id: string) => void;
   toggleTipFavorite: (id: string) => void;
   toggleTipHidden: (id: string) => void;
   toggleTipDone: (id: string, date?: string) => void;
@@ -161,6 +184,12 @@ const initial: State = {
   tipFavorites: [],
   tipHidden: [],
   tipDone: {},
+  outings: [],
+  location: null,
+  wardrobe: [],
+  outfits: [],
+  barberBriefs: [],
+  scannedProducts: [],
 };
 
 export const useStore = create<State & Actions>()(
@@ -172,6 +201,30 @@ export const useStore = create<State & Actions>()(
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
       toggleWidget: (id) => set((s) => ({ hiddenWidgets: s.hiddenWidgets.includes(id) ? s.hiddenWidgets.filter((w) => w !== id) : [...s.hiddenWidgets, id] })),
       addBodyMetric: (m) => set((s) => ({ bodyMetrics: [...s.bodyMetrics, m].sort((a, b) => a.date.localeCompare(b.date)) })),
+      addOuting: (o) => set((s) => ({ outings: [o, ...s.outings].slice(0, 50) })),
+      updateOuting: (id, patch) => set((s) => ({ outings: s.outings.map((o) => (o.id === id ? { ...o, ...patch } : o)) })),
+      removeOuting: (id) => set((s) => ({ outings: s.outings.filter((o) => o.id !== id) })),
+      setLocation: (location) => set({ location }),
+      upsertWardrobe: (w) => set((s) => ({ wardrobe: s.wardrobe.some((x) => x.id === w.id) ? s.wardrobe.map((x) => (x.id === w.id ? w : x)) : [w, ...s.wardrobe] })),
+      removeWardrobe: (id) => {
+        const w = get().wardrobe.find((x) => x.id === id);
+        if (w?.imageId) deleteImage(w.imageId);
+        set((s) => ({ wardrobe: s.wardrobe.filter((x) => x.id !== id), outfits: s.outfits.map((o) => ({ ...o, items: o.items.filter((i) => i !== id) })) }));
+      },
+      upsertOutfit: (o) => set((s) => ({ outfits: s.outfits.some((x) => x.id === o.id) ? s.outfits.map((x) => (x.id === o.id ? o : x)) : [o, ...s.outfits] })),
+      removeOutfit: (id) => set((s) => ({ outfits: s.outfits.filter((x) => x.id !== id) })),
+      addBarberBrief: (b) => set((s) => ({ barberBriefs: [b, ...s.barberBriefs].slice(0, 30) })),
+      removeBarberBrief: (id) => {
+        const b = get().barberBriefs.find((x) => x.id === id);
+        if (b?.imageId) deleteImage(b.imageId);
+        set((s) => ({ barberBriefs: s.barberBriefs.filter((x) => x.id !== id) }));
+      },
+      addScannedProduct: (p) => set((s) => ({ scannedProducts: [p, ...s.scannedProducts].slice(0, 60) })),
+      removeScannedProduct: (id) => {
+        const p = get().scannedProducts.find((x) => x.id === id);
+        if (p?.imageId) deleteImage(p.imageId);
+        set((s) => ({ scannedProducts: s.scannedProducts.filter((x) => x.id !== id) }));
+      },
       toggleTipFavorite: (id) => set((s) => ({ tipFavorites: s.tipFavorites.includes(id) ? s.tipFavorites.filter((x) => x !== id) : [...s.tipFavorites, id] })),
       toggleTipHidden: (id) => set((s) => ({ tipHidden: s.tipHidden.includes(id) ? s.tipHidden.filter((x) => x !== id) : [...s.tipHidden, id] })),
       toggleTipDone: (id, date = dateKey()) =>

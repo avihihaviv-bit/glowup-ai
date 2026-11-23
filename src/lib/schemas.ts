@@ -255,6 +255,22 @@ export const FaceScanRequest = z.object({
   observations: z.string().max(3000),
 });
 
+/* ---------- Product label reading ---------- */
+
+export const ProductLabelSchema = z.object({
+  readable: z.boolean().describe("false if the label cannot be read"),
+  name: z.string().describe("Product name exactly as printed, or empty"),
+  brand: z.string(),
+  type: z.enum(["cleanser", "moisturizer", "spf", "serum", "exfoliant", "shampoo", "conditioner", "styling", "deodorant", "toothpaste", "mouthwash", "fragrance", "other"]),
+  barcode: z.string().describe("Digits of the barcode if clearly visible, else empty"),
+  ingredientsOnLabel: z.array(z.string()).describe("ONLY ingredients that are clearly legible in the photo. Empty array if not visible. Never guess."),
+  purpose: z.string().describe("Intended use as stated on the label, or empty"),
+  howToUse: z.string().describe("Directions as printed, or empty"),
+  warnings: z.array(z.string()).describe("Warnings as printed on the label"),
+  confidence: z.enum(["low", "medium", "high"]),
+});
+export type ProductLabel = z.infer<typeof ProductLabelSchema>;
+
 /* ---------- Concerns ---------- */
 
 export const ConcernAnalysisSchema = z.object({

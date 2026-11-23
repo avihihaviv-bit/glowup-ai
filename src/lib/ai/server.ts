@@ -6,6 +6,7 @@ import {
   ConcernAnalysisSchema,
   FaceScanReportSchema,
   SkinScanSchema,
+  ProductLabelSchema,
   FaceRatingsSchema,
   HairRatingsSchema,
   BodyRatingsSchema,
@@ -283,4 +284,12 @@ export async function analyzeFaceScan(input: {
   add("חצי פרופיל (ראש מסובב ימינה):", input.right);
   content.push({ type: "text", text: `תצפיות מנקודות ציון (הערכות יחסיות מתמונה דו-ממדית):\n${input.observations}\n${profileText(input.profile)}\nכתוב את הדוח.` });
   return parseWith(FaceScanReportSchema, FACE_SCAN_SYSTEM + langRule(input.profile), content, "medium");
+}
+
+export async function readProductLabel(img: { mediaType: "image/jpeg" | "image/png" | "image/webp"; data: string }, profile?: unknown) {
+  const system = `אתה קורא תוויות של מוצרי טיפוח. החזר רק מה שכתוב בתווית ונראה בבירור בתמונה. אסור לנחש או להשלים רשימת רכיבים, שם או הוראות. אם משהו לא קריא, השאר ריק והורד את רמת הביטחון.${langRule(profile)}`;
+  return parseWith(ProductLabelSchema, system, [
+    { type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } },
+    { type: "text", text: "קרא את התווית." },
+  ], "low");
 }

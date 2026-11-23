@@ -270,3 +270,66 @@ export interface FragranceLog {
   occasion: string;
   notes: string;
 }
+
+export type EventType = "casual" | "school" | "birthday" | "barMitzvah" | "family" | "date" | "party" | "formal" | "outdoor";
+
+export interface OutingPlan {
+  id: string;
+  type: EventType;
+  title: string;
+  start: string; // ISO datetime
+  weather: "hot" | "mild" | "cold" | "rain";
+  indoor: boolean;
+  checks: Record<string, boolean>; // readiness checklist + timeline items
+  createdAt: string;
+}
+
+export interface WardrobeItem {
+  id: string;
+  name: string;
+  slot: "top" | "bottom" | "shoes" | "outer" | "accessory";
+  color: string;
+  seasons: ("hot" | "mild" | "cold")[];
+  occasions: string[];
+  imageId?: string;
+}
+
+export interface Outfit {
+  id: string;
+  name: string;
+  items: string[]; // wardrobe item ids
+  favorite: boolean;
+  createdAt: string;
+}
+
+export interface BarberBrief {
+  id: string;
+  createdAt: string;
+  cutName: string;
+  hairType: string;
+  currentLength: string;
+  topLength: string;
+  sideLength: string;
+  fade: string;
+  texture: string;
+  styling: string;
+  avoid: string;
+  maintenance: string;
+  imageId?: string;
+}
+
+export interface ScannedProduct {
+  id: string;
+  date: string;
+  name: string;
+  brand: string;
+  type: string;
+  ingredients: string[];
+  ingredientsSource: "label" | "database" | "none";
+  purpose: string;
+  howToUse: string;
+  warnings: string[];
+  confidence: "low" | "medium" | "high";
+  barcode?: string;
+  imageId?: string;
+}
