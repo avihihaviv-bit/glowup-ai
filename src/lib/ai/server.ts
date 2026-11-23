@@ -5,6 +5,7 @@ import type { z } from "zod";
 import {
   ConcernAnalysisSchema,
   FaceScanReportSchema,
+  SkinScanSchema,
   FaceRatingsSchema,
   HairRatingsSchema,
   BodyRatingsSchema,
@@ -95,6 +96,19 @@ export class AIError extends Error {
 
 export async function analyze(req: AnalyzeRequestT) {
   const SYSTEM = ANALYSIS_SYSTEM + langRule(req.profile);
+  if (req.type === "skinScan") {
+    const content: Anthropic.Beta.Messages.BetaContentBlockParam[] = [];
+    const names = { forehead: "מצח", leftCheek: "לחי שמאל", rightCheek: "לחי ימין", chin: "סנטר" };
+    for (const it of req.images) {
+      content.push({ type: "text", text: `אזור: ${names[it.area]} (${it.area})` });
+      content.push({ type: "image", source: { type: "base64", media_type: it.image.mediaType, data: it.image.data } });
+    }
+    content.push({
+      type: "text",
+      text: `תאר רק מאפיינים נראים לכל אזור: מראה דמוי אקנה, אדמומיות, יובש נראה, מראה שמנוני, מרקם, סימנים/כתמים. השתמש ב-unclear כשאי אפשר לראות. אסור לאבחן מחלות עור (רוזציאה, אקזמה וכו׳) ואסור להמליץ על תרופות מרשם. nextSteps: צעדי טיפוח עדינים ומתאימים לגיל. dermatologistNote: מתי לפנות לרופא/ת עור.\n${profileText(req.profile)}`,
+    });
+    return analyzeResult("skinScan", await parseWith(SkinScanSchema, SYSTEM, content));
+  }
   if (req.type === "skin") {
     const prompt = `בנה שגרת טיפוח עור פשוטה, לא מוגזמת ומציאותית.
 סוג עור (דיווח עצמי): ${req.skinType}
@@ -102,7 +116,7 @@ export async function analyze(req: AnalyzeRequestT) {
 מוצרים קיימים (טקסט חופשי של המשתמש): ${req.products || "לא צוינו"}
 זמן מקסימלי ביום: ${req.minutes} דקות
 ${profileText(req.profile)}
-הנחיות: שגרת בוקר (ניקוי עדין, לחות, SPF חובה), שגרת ערב, ושלבים שבועיים אופציונליים. השתמש במוצרים הקיימים כשאפשר. לכל מוצר קיים — האם להשאיר. הסבר כל מוצר בשפה פשוטה. אל תאבחן. dermatologistNote: מתי כדאי לפנות לרופא עור.`;
+הנחיות: שגרת בוקר (ניקוי עדין, לחות, SPF כשיש חשיפה לשמש), שגרת ערב, שלבים שבועיים אופציונליים, שגרה אחרי אימון ושגרה לפני אירוע. לכל שלב: מטרה, איך, מתי, אזהרות, ו-duplicateOf אם מוצר קיים של המשתמש כבר מכסה את השלב. העדף שגרה עדינה ומתאימה לגיל, בלי שילובים מורכבים של חומרים פעילים ובלי טיפולי מרשם. השתמש במוצרים הקיימים כשאפשר. אל תאבחן. dermatologistNote: מתי כדאי לפנות לרופא עור.`;
     return analyzeResult("skin", await parseWith(SkinRoutineSchema, SYSTEM, [{ type: "text", text: prompt }]));
   }
 
@@ -149,11 +163,12 @@ ${profileText(req.profile)}
   }
 
   if (req.type === "hair") {
+    const extra: Anthropic.Beta.Messages.BetaContentBlockParam[] = (req.extraImages ?? []).map((im) => ({ type: "image" as const, source: { type: "base64" as const, media_type: im.mediaType, data: im.data } }));
     const prompt = `נתח את תמונת השיער.
 ${profileText(req.profile)}
 צורת פנים ידועה (אם נמסרה): ${req.faceShape || "לא ידוע"}
-החזר: אורך, מרקם שנראה בתמונה, תיאור התספורת הנוכחית; 3-5 תסרוקות/תספורות מומלצות (מתאימות למבנה הפנים אם ידוע) עם הסבר וניסוח מדויק לספר; פסקת "מה להגיד לספר" (מספרי מכונה, אורכים בס״מ, טקסטורה, קו עורף וכו׳); שגרת טיפוח (שלבים, תדירות, איך); 2-4 סוגי מוצרים אפשריים עם טיפ חיסכון. אל תאבחן נשירה או מצבים רפואיים — אם רלוונטי, הפנה לרופא עור.`;
-    return analyzeResult("hair", await parseWith(HairAnalysisSchema, SYSTEM, [image, { type: "text", text: prompt }]));
+יתכנו תמונות נוספות מזוויות שונות (צד, אחור, למעלה). החזר: אורך, מרקם שנראה (חלק/גלי/מתולתל), תיאור התספורת הנוכחית, נפח, פריז ויובש נראים, והתאמת התספורת למרקם ולפנים; 3-5 תסרוקות/תספורות מומלצות (מתאימות למבנה הפנים אם ידוע) עם הסבר וניסוח מדויק לספר; פסקת "מה להגיד לספר" (מספרי מכונה, אורכים בס״מ, טקסטורה, קו עורף וכו׳); שגרת טיפוח (שלבים, תדירות, איך); 2-4 סוגי מוצרים אפשריים עם טיפ חיסכון. אל תאבחן נשירה או מצבים רפואיים — אם רלוונטי, הפנה לרופא עור.`;
+    return analyzeResult("hair", await parseWith(HairAnalysisSchema, SYSTEM, [image, ...extra, { type: "text", text: prompt }]));
   }
 
   const prompt = `נתח את ה-outfit בתמונה.

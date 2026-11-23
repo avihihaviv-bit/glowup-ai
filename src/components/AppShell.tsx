@@ -21,6 +21,10 @@ import {
   Flame,
   ChevronsLeft,
   ChevronsRight,
+  Brush,
+  Smile,
+  SprayCan,
+  Waves,
   type LucideIcon,
 } from "lucide-react";
 import { useStore, computeXP, computeStreak } from "@/lib/store";
@@ -51,6 +55,15 @@ export const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
       { href: "/hair", key: "nav.hair", icon: Scissors },
       { href: "/style", key: "nav.style", icon: Shirt },
       { href: "/fitness", key: "nav.fitness", icon: Dumbbell },
+    ],
+  },
+  {
+    key: "nav.group.care",
+    items: [
+      { href: "/grooming", key: "nav.grooming", icon: Brush },
+      { href: "/oral", key: "nav.oral", icon: Smile },
+      { href: "/fragrance", key: "nav.fragrance", icon: SprayCan },
+      { href: "/debloat", key: "nav.debloat", icon: Waves },
     ],
   },
   {

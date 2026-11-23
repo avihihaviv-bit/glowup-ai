@@ -13,6 +13,8 @@ import { Badge, Button, Card, Chip, EmptyState, ErrorBox, Field, Input, Modal, P
 import { ImageUploader } from "@/components/ImageUploader";
 import { AnalysisHistory, CloseResult, CopyButton, HairResult } from "@/components/results";
 import { PhotoRatings } from "@/components/PhotoRatings";
+import { HairStudio } from "@/components/HairStudio";
+import { blobToBase64 } from "@/lib/images";
 import { HairIllustration } from "@/components/HairIllustration";
 import { StoredImage } from "@/components/StoredImage";
 
@@ -52,15 +54,20 @@ function Analysis() {
   const profile = useStore((s) => s.profile);
   const faceShape = useFaceShape();
   const [image, setImage] = useState<Blob | null>(null);
+  const [extra, setExtra] = useState<{ side: Blob | null; back: Blob | null; top: Blob | null }>({ side: null, back: null, top: null });
   const [length, setLength] = useState("short");
   const [texture, setTexture] = useState("straight");
 
-  const start = () =>
-    run({
+  const start = async () => {
+    const extraImages = await Promise.all(
+      (Object.values(extra).filter(Boolean) as Blob[]).map(async (b) => ({ mediaType: "image/jpeg" as const, data: await blobToBase64(b) })),
+    );
+    return run({
       image,
-      extra: { faceShape: faceShape ?? undefined },
+      extra: { faceShape: faceShape ?? undefined, extraImages: extraImages.length ? extraImages : undefined },
       demo: (q) => demoHair({ length, texture, faceShape, q, profile }),
     });
+  };
 
   if (record)
     return (
@@ -76,7 +83,22 @@ function Analysis() {
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-2">
           <SectionTitle>העלאת תמונת שיער</SectionTitle>
-          <ImageUploader value={image} onChange={setImage} hint="שיער יבש ומסודר, מלפנים או מהצד" tips={["אור יום", "שיער במצבו הרגיל", "עדיף 2 זוויות — אפשר להריץ פעמיים"]} />
+          <ImageUploader value={image} onChange={setImage} hint="מלפנים, שיער יבש ומסודר" tips={["אור יום", "שיער במצבו הרגיל"]} />
+          <div className="mt-4 text-sm font-medium">זוויות נוספות (אופציונלי)</div>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {(
+              [
+                ["side", "צד"],
+                ["back", "אחור"],
+                ["top", "למעלה"],
+              ] as const
+            ).map(([k, l]) => (
+              <div key={k}>
+                <div className="mb-1 text-xs text-muted">{l}</div>
+                <ImageUploader value={extra[k]} onChange={(b) => setExtra((x) => ({ ...x, [k]: b }))} hint={l} aspect="aspect-square" />
+              </div>
+            ))}
+          </div>
         </Card>
         <div className="space-y-4 lg:col-span-3">
           {!ai.loading && !ai.aiEnabled && (
@@ -259,6 +281,19 @@ function Gallery() {
               </div>
               {open.barberScript}
             </div>
+            <div className="grid grid-cols-3 gap-2 text-center text-sm">
+              {[
+                ["אורך נדרש", { buzz: "0.5-1.5 ס״מ", short: "3-7 ס״מ למעלה", medium: "8-15 ס״מ", long: "15+ ס״מ" }[open.length]],
+                ["תחזוקה", open.maintenance],
+                ["קושי עיצוב", { נמוכה: "קל", בינונית: "בינוני", גבוהה: "מאתגר" }[open.maintenance]],
+              ].map(([k, v]) => (
+                <div key={k} className="rounded-xl bg-surface-2 p-2">
+                  <div className="text-[11px] text-dim">{k}</div>
+                  <div className="font-semibold">{v}</div>
+                </div>
+              ))}
+            </div>
+            <HairStudio style={open} />
             <div className="rounded-xl bg-surface-2 p-4 text-sm">
               <div className="mb-1 font-medium">עיצוב יומיומי</div>
               <span className="text-muted">{open.styling}</span>

@@ -9,8 +9,9 @@ import { SKIN_CONCERNS } from "@/lib/knowledge";
 import type { SkinRoutine } from "@/lib/schemas";
 import type { Product } from "@/lib/types";
 import { cn, uid } from "@/lib/utils";
-import { Button, Card, Chip, EmptyState, ErrorBox, Field, Input, Modal, PageHeader, SectionTitle, Select, Spinner, Textarea } from "@/components/ui";
+import { Segmented, Button, Card, Chip, EmptyState, ErrorBox, Field, Input, Modal, PageHeader, SectionTitle, Select, Spinner, Textarea } from "@/components/ui";
 import { AnalysisHistory, CloseResult, SkinResult } from "@/components/results";
+import { SkinScanPanel } from "@/components/SkinScan";
 
 const SKIN_TYPES = [
   ["oily", "שמנוני"],
@@ -27,10 +28,30 @@ const CAT_LABEL: Record<Product["category"], string> = {
   spf: "SPF",
   serum: "סרום/טיפול",
   hair: "שיער",
+  oral: "פה ושיניים",
+  deodorant: "דאודורנט",
   other: "אחר",
 };
 
 export default function SkinPage() {
+  const [tab, setTab] = useState<"routine" | "scan">("routine");
+  return (
+    <div className="space-y-6">
+      <PageHeader title="טיפוח עור" subtitle="סריקה לפי אזורים, ושגרה פשוטה ומותאמת: בוקר, ערב, אחרי אימון ולפני אירוע." icon={<Droplets className="size-5" />} />
+      <Segmented<"routine" | "scan">
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: "routine", label: "שגרת טיפוח" },
+          { value: "scan", label: "סריקת עור" },
+        ]}
+      />
+      {tab === "routine" ? <SkinRoutineView /> : <SkinScanPanel />}
+    </div>
+  );
+}
+
+function SkinRoutineView() {
   const ai = useAIStatus();
   const profile = useStore((s) => s.profile)!;
   const updateProfile = useStore((s) => s.updateProfile);
@@ -49,17 +70,16 @@ export default function SkinPage() {
       .filter(Boolean)
       .join(", ");
     const payload = { skinType: profile.skinType, concerns, products: productText, minutes };
-    run({ extra: payload, demo: () => demoSkin(payload) }).then((r) => r && setShowForm(false));
+    run({ extra: payload, demo: () => demoSkin({ ...payload, saved: products.map((p) => ({ name: p.name, category: p.category })) }) }).then((r) => r && setShowForm(false));
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="טיפוח עור"
-        subtitle="שגרה פשוטה, לא מוגזמת ומותאמת לך — בוקר, ערב, ניקוי, לחות ו-SPF."
-        icon={<Droplets className="size-5" />}
-        actions={shown && <CloseResult onClick={() => (setRecord(null), setShowForm(true))} />}
-      />
+      {shown && (
+        <div className="flex justify-end">
+          <CloseResult onClick={() => (setRecord(null), setShowForm(true))} />
+        </div>
+      )}
 
       <div className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 text-sm text-muted">
         <Stethoscope className="mt-0.5 size-5 shrink-0 text-accent" />

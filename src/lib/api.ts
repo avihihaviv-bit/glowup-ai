@@ -5,21 +5,22 @@ import { useStore, computeStreak, dayScore } from "./store";
 import { dateKey, lastNDays } from "./utils";
 import { planDay } from "./plan";
 
-let statusPromise: Promise<{ aiEnabled: boolean; model: string | null }> | null = null;
+let statusPromise: Promise<{ aiEnabled: boolean; model: string | null; imageGen?: boolean }> | null = null;
 
 export function fetchStatus() {
   if (!statusPromise) {
     statusPromise = fetch("/api/status", { cache: "no-store" })
       .then((r) => r.json())
-      .catch(() => ({ aiEnabled: false, model: null }));
+      .catch(() => ({ aiEnabled: false, model: null, imageGen: false }));
   }
   return statusPromise;
 }
 
 export function useAIStatus() {
-  const [status, setStatus] = useState<{ aiEnabled: boolean; model: string | null; loading: boolean }>({
+  const [status, setStatus] = useState<{ aiEnabled: boolean; model: string | null; imageGen?: boolean; loading: boolean }>({
     aiEnabled: false,
     model: null,
+    imageGen: false,
     loading: true,
   });
   useEffect(() => {

@@ -54,6 +54,9 @@ export const HairAnalysisSchema = z.object({
   length: z.string(),
   texture: z.string().describe("Only what is visible, e.g. straight / wavy / curly / coily"),
   currentCut: z.string(),
+  volume: z.string(),
+  frizzDryness: z.string().describe("Visible frizz/dryness only"),
+  cutCompatibility: z.string().describe("How well the current cut suits the texture and face"),
   recommendedStyles: z.array(Suggestion),
   barberScript: z.string().describe("A short paragraph the user can read/show to the barber"),
   routine: z.array(z.object({ step: z.string(), frequency: z.string(), how: z.string() })),
@@ -87,7 +90,11 @@ export type StyleAnalysis = z.infer<typeof StyleAnalysisSchema>;
 const RoutineItem = z.object({
   step: z.string(),
   product: z.string(),
+  purpose: z.string().describe("Why this step exists"),
   how: z.string(),
+  when: z.string().describe("Time of day / situation"),
+  precautions: z.string().describe("Safety notes; empty string if none"),
+  duplicateOf: z.string().describe("Name of a saved product that already covers this step, or empty string"),
   minutes: z.number(),
 });
 
@@ -96,6 +103,8 @@ export const SkinRoutineSchema = z.object({
   morning: z.array(RoutineItem),
   evening: z.array(RoutineItem),
   weekly: z.array(RoutineItem),
+  afterWorkout: z.array(RoutineItem),
+  beforeEvent: z.array(RoutineItem),
   productNotes: z.array(
     z.object({
       product: z.string(),
@@ -107,6 +116,30 @@ export const SkinRoutineSchema = z.object({
   dermatologistNote: z.string(),
 });
 export type SkinRoutine = z.infer<typeof SkinRoutineSchema>;
+
+/* ---------- Skin scan (4 areas, visible characteristics only) ---------- */
+
+const Visible = z.enum(["none", "mild", "noticeable", "unclear"]);
+export const SkinScanSchema = z.object({
+  areas: z.array(
+    z.object({
+      area: z.enum(["forehead", "leftCheek", "rightCheek", "chin"]),
+      usable: z.boolean(),
+      acneLike: Visible,
+      redness: Visible,
+      dryness: Visible,
+      oiliness: Visible,
+      texture: Visible,
+      marks: Visible,
+      note: z.string(),
+      confidence: z.enum(["low", "medium", "high"]),
+    }),
+  ),
+  overall: z.string(),
+  nextSteps: z.array(z.string()),
+  dermatologistNote: z.string(),
+});
+export type SkinScan = z.infer<typeof SkinScanSchema>;
 
 /* ---------- Plan ---------- */
 
@@ -276,7 +309,8 @@ const ImagePayload = z.object({
 export const AnalyzeRequest = z.discriminatedUnion("type", [
   z.object({ type: z.literal("face"), image: ImagePayload, profile: ProfileContext.optional(), wearsGlasses: z.boolean().optional() }),
   z.object({ type: z.literal("ratings"), scope: z.enum(["face", "hair", "body"]), image: ImagePayload, profile: ProfileContext.optional() }),
-  z.object({ type: z.literal("hair"), image: ImagePayload, profile: ProfileContext.optional(), faceShape: z.string().max(30).optional() }),
+  z.object({ type: z.literal("hair"), image: ImagePayload, extraImages: z.array(ImagePayload).max(3).optional(), profile: ProfileContext.optional(), faceShape: z.string().max(30).optional() }),
+  z.object({ type: z.literal("skinScan"), images: z.array(z.object({ area: z.enum(["forehead", "leftCheek", "rightCheek", "chin"]), image: ImagePayload })).min(1).max(4), profile: ProfileContext.optional() }),
   z.object({ type: z.literal("style"), image: ImagePayload, profile: ProfileContext.optional(), occasion: z.string().max(100).optional() }),
   z.object({
     type: z.literal("skin"),

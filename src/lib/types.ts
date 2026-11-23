@@ -160,7 +160,7 @@ export interface Workout {
   notes: string;
 }
 
-export type AnalysisType = "face" | "hair" | "style" | "skin" | "ratings";
+export type AnalysisType = "face" | "hair" | "style" | "skin" | "ratings" | "skinScan";
 
 export interface AnalysisRecord {
   id: string;
@@ -184,7 +184,7 @@ export interface HaircutTried {
 export interface Product {
   id: string;
   name: string;
-  category: "cleanser" | "moisturizer" | "spf" | "serum" | "hair" | "other";
+  category: "cleanser" | "moisturizer" | "spf" | "serum" | "hair" | "oral" | "deodorant" | "other";
   use: "morning" | "evening" | "both";
   liked: boolean;
   notes: string;
@@ -226,4 +226,47 @@ export interface FaceScan {
   quality: Partial<Record<ScanStepId, ScanImageQuality>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   report?: { source: "ai"; date: string; data: any };
+}
+
+export interface DebloatEntry {
+  id: string;
+  date: string;
+  time: string;
+  area: "face" | "underEye" | "abdomen";
+  severity: number; // 1-5, self-reported
+  foods: string;
+  notes: string;
+  better?: "better" | "same" | "worse";
+}
+
+export interface OralDay {
+  am?: boolean;
+  pm?: boolean;
+  floss?: boolean;
+  tongue?: boolean;
+}
+
+export type Concentration = "EDC" | "EDT" | "EDP" | "Parfum" | "Other";
+
+export interface Fragrance {
+  id: string;
+  name: string;
+  brand: string;
+  concentration: Concentration;
+  family: string;
+  seasons: ("spring" | "summer" | "autumn" | "winter")[];
+  occasions: string[];
+  rating: number; // 1-5, the user's own rating
+  longevity: string; // user's own notes
+  projection: string; // user's own notes
+  notes: string; // user's own notes (we never invent fragrance notes)
+}
+
+export interface FragranceLog {
+  id: string;
+  date: string;
+  fragranceId: string;
+  sprays: number;
+  occasion: string;
+  notes: string;
 }

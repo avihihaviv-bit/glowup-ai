@@ -227,6 +227,9 @@ export function HairResult({ r, source }: { r: HairAnalysis; source: "ai" | "dem
             ["אורך", r.length],
             ["מרקם", r.texture],
             ["תספורת נוכחית", r.currentCut],
+            ...(r.volume ? [["נפח", r.volume]] : []),
+            ...(r.frizzDryness ? [["פריז ויובש נראים", r.frizzDryness]] : []),
+            ...(r.cutCompatibility ? [["התאמת התספורת", r.cutCompatibility]] : []),
           ].map(([k, v]) => (
             <div key={k} className="rounded-xl bg-surface-2 p-3">
               <div className="text-xs text-dim">{k}</div>
@@ -364,25 +367,29 @@ export function StyleResult({ r, source }: { r: StyleAnalysis; source: "ai" | "d
 }
 
 export function SkinResult({ r, source }: { r: SkinRoutine; source: "ai" | "demo" }) {
-  const block = (title: string, items: SkinRoutine["morning"]) =>
-    items.length > 0 && (
+  const block = (title: string, items: SkinRoutine["morning"] | undefined) =>
+    items && items.length > 0 ? (
       <Card>
         <SectionTitle action={<span className="text-xs text-muted">~{items.reduce((a, b) => a + b.minutes, 0)} דק׳</span>}>{title}</SectionTitle>
         <ol className="space-y-3">
           {items.map((s, i) => (
             <li key={i} className="flex gap-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent">{i + 1}</span>
-              <div className="text-sm">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent-strong">{i + 1}</span>
+              <div className="min-w-0 text-sm">
                 <div className="font-medium">
-                  {s.step}: <span className="text-accent">{s.product}</span>
+                  {s.step}: <span className="text-accent-strong">{s.product}</span>
                 </div>
-                <div className="text-muted">{s.how}</div>
+                {s.purpose && <div className="text-muted">למה: {s.purpose}</div>}
+                <div className="text-muted">איך: {s.how}</div>
+                {s.when && <div className="text-xs text-dim">מתי: {s.when}</div>}
+                {s.precautions && <div className="mt-1 text-xs text-warn">{s.precautions}</div>}
+                {s.duplicateOf && <div className="mt-1 inline-block rounded-full bg-accent-soft px-2 py-0.5 text-[11px] text-accent-strong">כבר יש לך: {s.duplicateOf}</div>}
               </div>
             </li>
           ))}
         </ol>
       </Card>
-    );
+    ) : null;
   return (
     <motion.div {...fade} className="space-y-4">
       <SourceNotice source={source} />
@@ -392,6 +399,8 @@ export function SkinResult({ r, source }: { r: SkinRoutine; source: "ai" | "demo
       <div className="grid gap-4 md:grid-cols-2">
         {block("שגרת בוקר", r.morning)}
         {block("שגרת ערב", r.evening)}
+        {block("אחרי אימון", r.afterWorkout)}
+        {block("לפני אירוע", r.beforeEvent)}
       </div>
       {block("פעם בשבוע (אופציונלי)", r.weekly)}
       {r.productNotes.length > 0 && (
@@ -416,10 +425,7 @@ export function SkinResult({ r, source }: { r: SkinRoutine; source: "ai" | "demo
         <SectionTitle>טיפים</SectionTitle>
         <List items={r.tips} icon="•" />
       </Card>
-      <div className="flex items-start gap-2 rounded-xl border border-line bg-surface-2 p-4 text-sm text-muted">
-        <span></span>
-        <span>{r.dermatologistNote}</span>
-      </div>
+      <div className="rounded-xl border border-line bg-surface-2 p-4 text-sm text-muted">{r.dermatologistNote}</div>
     </motion.div>
   );
 }

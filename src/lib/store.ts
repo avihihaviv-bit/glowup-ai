@@ -8,6 +8,10 @@ import type {
   Concern,
   FaceScan,
   ConcernStatus,
+  DebloatEntry,
+  Fragrance,
+  FragranceLog,
+  OralDay,
   HaircutTried,
   Lang,
   Plan,
@@ -44,6 +48,12 @@ interface State {
   hiddenWidgets: string[];
   bodyMetrics: BodyMetric[];
   scans: FaceScan[];
+  groomingLog: Record<string, string>; // grooming task id -> last done date
+  oral: Record<string, OralDay>;
+  dentist: { lastVisit?: string; intervalMonths: number };
+  debloat: DebloatEntry[];
+  fragrances: Fragrance[];
+  fragranceLog: FragranceLog[];
 }
 
 export interface BodyMetric {
@@ -63,6 +73,15 @@ interface Actions {
   toggleWidget: (id: string) => void;
   addBodyMetric: (m: BodyMetric) => void;
   removeBodyMetric: (id: string) => void;
+  markGroomed: (taskId: string, date?: string) => void;
+  toggleOral: (key: keyof OralDay, date?: string) => void;
+  setDentist: (d: { lastVisit?: string; intervalMonths: number }) => void;
+  addDebloat: (e: DebloatEntry) => void;
+  removeDebloat: (id: string) => void;
+  upsertFragrance: (f: Fragrance) => void;
+  removeFragrance: (id: string) => void;
+  addFragranceLog: (l: FragranceLog) => void;
+  removeFragranceLog: (id: string) => void;
   addScan: (s: FaceScan) => void;
   updateScan: (id: string, patch: Partial<FaceScan>) => void;
   removeScan: (id: string) => void;
@@ -127,6 +146,12 @@ const initial: State = {
   hiddenWidgets: [],
   bodyMetrics: [],
   scans: [],
+  groomingLog: {},
+  oral: {},
+  dentist: { intervalMonths: 6 },
+  debloat: [],
+  fragrances: [],
+  fragranceLog: [],
 };
 
 export const useStore = create<State & Actions>()(
@@ -138,6 +163,18 @@ export const useStore = create<State & Actions>()(
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
       toggleWidget: (id) => set((s) => ({ hiddenWidgets: s.hiddenWidgets.includes(id) ? s.hiddenWidgets.filter((w) => w !== id) : [...s.hiddenWidgets, id] })),
       addBodyMetric: (m) => set((s) => ({ bodyMetrics: [...s.bodyMetrics, m].sort((a, b) => a.date.localeCompare(b.date)) })),
+      markGroomed: (taskId, date = dateKey()) => set((s) => ({ groomingLog: { ...s.groomingLog, [taskId]: date } })),
+      toggleOral: (key, date = dateKey()) =>
+        set((s) => ({ oral: { ...s.oral, [date]: { ...s.oral[date], [key]: !s.oral[date]?.[key] } } })),
+      setDentist: (dentist) => set({ dentist }),
+      addDebloat: (e) => set((s) => ({ debloat: [e, ...s.debloat].slice(0, 500) })),
+      removeDebloat: (id) => set((s) => ({ debloat: s.debloat.filter((x) => x.id !== id) })),
+      upsertFragrance: (f) =>
+        set((s) => ({ fragrances: s.fragrances.some((x) => x.id === f.id) ? s.fragrances.map((x) => (x.id === f.id ? f : x)) : [f, ...s.fragrances] })),
+      removeFragrance: (id) =>
+        set((s) => ({ fragrances: s.fragrances.filter((x) => x.id !== id), fragranceLog: s.fragranceLog.filter((l) => l.fragranceId !== id) })),
+      addFragranceLog: (l) => set((s) => ({ fragranceLog: [l, ...s.fragranceLog].slice(0, 500) })),
+      removeFragranceLog: (id) => set((s) => ({ fragranceLog: s.fragranceLog.filter((x) => x.id !== id) })),
       addScan: (scan) => set((s) => ({ scans: [scan, ...s.scans].slice(0, 40) })),
       updateScan: (id, patch) => set((s) => ({ scans: s.scans.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
       removeScan: (id) => {

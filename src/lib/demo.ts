@@ -169,6 +169,9 @@ export function demoHair(opts: {
     length: `${lenLabel[opts.length] ?? opts.length} (לפי בחירתך)`,
     texture: `${texLabel[opts.texture] ?? opts.texture} (לפי בחירתך)`,
     currentCut: "במצב דמו התספורת הנוכחית אינה מזוהה מהתמונה.",
+    volume: "לא נבדק במצב דמו",
+    frizzDryness: "לא נבדק במצב דמו",
+    cutCompatibility: "לא נבדק במצב דמו. הבחירות למטה מבוססות על צורת הפנים והמרקם שבחרת.",
     recommendedStyles: styles.map((s) => ({ name: s.name, why: s.description, howToAsk: s.barberScript })),
     barberScript: styles[0]
       ? `"אני רוצה ${styles[0].name} (${styles[0].nameEn}). ${styles[0].barberScript} חשוב לי שיהיה קל לעיצוב בבוקר."`
@@ -275,49 +278,61 @@ export function demoStyle(opts: {
   };
 }
 
-export function demoSkin(opts: { skinType: string; concerns: string[]; products: string; minutes: number }): SkinRoutine {
+export function demoSkin(opts: { skinType: string; concerns: string[]; products: string; minutes: number; saved?: { name: string; category: string }[] }): SkinRoutine {
   const oily = opts.skinType === "oily" || opts.skinType === "combination";
   const dry = opts.skinType === "dry";
   const sensitive = opts.skinType === "sensitive" || opts.concerns.some((c) => c.includes("רגישות"));
   const acne = opts.concerns.some((c) => c.includes("אקנה"));
+  const saved = opts.saved ?? [];
+  const has = (cat: string) => saved.find((p) => p.category === cat)?.name ?? "";
   const productList = opts.products
     .split(/[\n,]/)
     .map((p) => p.trim())
     .filter(Boolean)
     .slice(0, 10);
-  const morning = [
-    { step: "ניקוי", product: oily ? "ג׳ל ניקוי עדין" : "מים פושרים בלבד / ניקוי קרמי", how: "30-60 שניות, לייבש בטפיחות", minutes: 1 },
-    { step: "לחות", product: oily ? "ג׳ל לחות קליל (oil-free)" : dry ? "קרם לחות עשיר עם סרמידים" : "קרם לחות קל", how: "כמות בגודל אפונה", minutes: 1 },
-    { step: "SPF 30-50", product: sensitive ? "SPF מינרלי (zinc)" : "SPF רחב טווח", how: "שתי אצבעות לפנים וצוואר — חובה גם בימים מעוננים", minutes: 1 },
-  ];
+  type Item = SkinRoutine["morning"][number];
+  const item = (step: string, product: string, purpose: string, how: string, when: string, minutes: number, precautions = "", dupCat = ""): Item => ({
+    step, product, purpose, how, when, precautions, duplicateOf: dupCat ? has(dupCat) : "", minutes,
+  });
+  const cleanser = item("ניקוי", oily ? "ג׳ל ניקוי עדין" : "ניקוי קרמי עדין", "מסיר שמן, זיעה ולכלוך בלי לייבש", "מים פושרים, עיסוי בקצות האצבעות 30-60 שניות, ייבוש בטפיחות", "בוקר וערב", 1, "בלי לשפשף ובלי ספוגים קשים", "cleanser");
+  const moist = item("לחות", oily ? "ג׳ל לחות קליל (oil-free)" : dry ? "קרם לחות עשיר" : "קרם לחות קל", "שומר על מחסום העור", "כמות בגודל אפונה על עור מעט לח", "אחרי ניקוי", 1, "", "moisturizer");
+  const spf = item("SPF 30+", sensitive ? "SPF מינרלי" : "SPF רחב טווח", "הגנה מקרינת UV", "שתי אצבעות לפנים ולצוואר, חידוש כל שעתיים בחוץ", "בבוקר כשיש חשיפה לשמש", 1, "", "spf");
+  const morning = [cleanser, moist, spf];
   const evening = [
-    { step: "ניקוי", product: oily ? "ג׳ל ניקוי עדין" : "ניקוי קרמי/חלבי", how: "אם השתמשת ב-SPF עמיד — ניקוי כפול: שמן/מי מיסלר ואז ניקוי", minutes: 2 },
+    { ...cleanser, when: "ערב" },
     ...(acne && !sensitive
-      ? [{ step: "טיפול ממוקד", product: "BHA (חומצה סליצילית) 2% או בנזואיל פרוקסיד 2.5%", how: "2-3 ערבים בשבוע בהתחלה, שכבה דקה", minutes: 1 }]
+      ? [item("טיפול ממוקד (אופציונלי)", "מוצר ללא מרשם לפצעונים", "תמיכה בעור נוטה לפצעונים", "שכבה דקה, 2-3 ערבים בשבוע בהתחלה", "ערב", 1, "מתחילים לאט. גירוי מתמשך: להפסיק ולהתייעץ עם רופא/ת עור", "serum")]
       : []),
-    { step: "לחות", product: dry ? "קרם לחות עשיר" : "קרם לחות", how: "על עור מעט לח לספיגה טובה", minutes: 1 },
+    { ...moist, when: "ערב" },
+  ];
+  const afterWorkout = [
+    item("שטיפה", "ניקוי עדין או מים", "הסרת זיעה", "שטיפה קצרה כשאפשר אחרי זיעה מרובה", "אחרי אימון", 1, "", "cleanser"),
+    item("לחות קלה", "קרם לחות קליל", "החזרת לחות", "שכבה דקה", "אחרי השטיפה", 1, "", "moisturizer"),
+  ];
+  const beforeEvent = [
+    item("ניקוי ולחות", "המוצרים הרגילים שלך", "עור רגוע ומוכן", "השגרה הרגילה, בלי מוצרים חדשים", "שעה-שעתיים לפני", 3, "לא לנסות מוצר חדש ביום האירוע"),
+    ...(spf ? [{ ...spf, when: "אם האירוע ביום או בחוץ" }] : []),
   ];
   const total = [...morning, ...evening].reduce((a, b) => a + b.minutes, 0);
   return {
-    summary: `שגרה של ~${total} דקות ביום לעור ${skinLabel(opts.skinType)}. בסיס של 3 צעדים בבוקר ו-2-3 בערב — עקביות חשובה יותר ממספר המוצרים.`,
+    summary: `שגרה של ~${total} דקות ביום לעור ${skinLabel(opts.skinType)}. בסיס פשוט ועקבי עדיף על הרבה מוצרים.`,
     morning,
     evening,
-    weekly: sensitive
-      ? []
-      : [{ step: "פילינג עדין", product: "חומצה לקטית / PHA בריכוז נמוך", how: "פעם בשבוע בערב במקום טיפול ממוקד", minutes: 2 }],
+    weekly: sensitive ? [] : [item("פילינג עדין (אופציונלי)", "פילינג כימי עדין בריכוז נמוך", "הסרת תאים מתים", "פעם בשבוע בערב, ואז לחות", "פעם בשבוע", 2, "לא על עור פצוע, שרוף או מגורה. לא לשלב עם עוד מוצרים מגרים")],
+    afterWorkout,
+    beforeEvent,
     productNotes: productList.map((p) => ({
       product: p,
       verdict: "unknown" as const,
-      note: "במצב דמו המוצר לא מנותח. כלל אצבע: אם הוא לא מגרה ומתאים לאחד הצעדים למעלה — אפשר להשאיר.",
+      note: "במצב דמו המוצר לא מנותח. אם הוא לא מגרה ומתאים לאחד הצעדים, אפשר להשאיר.",
     })),
     tips: [
-      "מוצר חדש — אחד בכל פעם, ניסיון של שבועיים לפני שמוסיפים עוד.",
-      "בדיקת רגישות: מעט מוצר מאחורי האוזן 24 שעות לפני שימוש בפנים.",
-      "שינה, מים, ותזונה מגוונת משפיעים מאוד על העור.",
-      "לא לסחוט פצעונים — זה מגביר סיכון לכתמים וצלקות.",
+      "מוצר חדש אחד בכל פעם, ולתת לו כמה שבועות.",
+      "בדיקת מוצר: מעט באזור קטן לפני שימוש בכל הפנים.",
+      "לא לסחוט פצעונים, זה מגביר סיכון לכתמים.",
+      "שינה, שתייה רגילה ותזונה מגוונת משפיעות על העור.",
     ],
-    dermatologistNote:
-      "אם יש אקנה כואב/עמוק, פריחה מתמשכת, שינוי בשומה, או שאין שיפור אחרי 8-12 שבועות — כדאי לפנות לרופא/ת עור.",
+    dermatologistNote: "אקנה כואב או עמוק, פריחה מתמשכת, שינוי בשומה, או שאין שיפור אחרי 8-12 שבועות: כדאי לפנות לרופא/ת עור.",
   };
 }
 
