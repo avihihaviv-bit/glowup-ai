@@ -264,7 +264,10 @@ export default function Dashboard() {
 }
 
 function TipWidget() {
-  const tip = tipOfTheDay(dateKey());
+  const hidden = useStore((s) => s.tipHidden);
+  const goals = useStore((s) => s.profile?.goals ?? []);
+  const prefer = goals.flatMap((g) => ({ grooming: ["grooming", "face"], haircut: ["hairStyling"], skin: ["skin", "face"], hairHealth: ["hairCare"], muscle: ["posture"], posture: ["posture"], growth: ["sleep", "nutrition"], sleep: ["sleep"], nutrition: ["nutrition"], puffiness: ["puffiness"], style: ["style"], confidence: ["grooming", "style"] } as Record<string, string[]>)[g] ?? []);
+  const tip = tipOfTheDay(dateKey(), hidden, prefer);
   return (
     <Card>
       <SectionTitle>
@@ -280,6 +283,9 @@ function TipWidget() {
         <Badge>{tip.when}</Badge>
       </div>
       {tip.warning && <p className="mt-2 text-xs text-warn">{tip.warning}</p>}
+      <Link href="/tips" className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-accent">
+        לכל 350 הטיפים
+      </Link>
     </Card>
   );
 }

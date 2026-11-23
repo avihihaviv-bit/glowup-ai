@@ -54,6 +54,9 @@ interface State {
   debloat: DebloatEntry[];
   fragrances: Fragrance[];
   fragranceLog: FragranceLog[];
+  tipFavorites: string[];
+  tipHidden: string[];
+  tipDone: Record<string, string[]>; // tip id -> dates completed
 }
 
 export interface BodyMetric {
@@ -73,6 +76,9 @@ interface Actions {
   toggleWidget: (id: string) => void;
   addBodyMetric: (m: BodyMetric) => void;
   removeBodyMetric: (id: string) => void;
+  toggleTipFavorite: (id: string) => void;
+  toggleTipHidden: (id: string) => void;
+  toggleTipDone: (id: string, date?: string) => void;
   markGroomed: (taskId: string, date?: string) => void;
   toggleOral: (key: keyof OralDay, date?: string) => void;
   setDentist: (d: { lastVisit?: string; intervalMonths: number }) => void;
@@ -152,6 +158,9 @@ const initial: State = {
   debloat: [],
   fragrances: [],
   fragranceLog: [],
+  tipFavorites: [],
+  tipHidden: [],
+  tipDone: {},
 };
 
 export const useStore = create<State & Actions>()(
@@ -163,6 +172,13 @@ export const useStore = create<State & Actions>()(
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
       toggleWidget: (id) => set((s) => ({ hiddenWidgets: s.hiddenWidgets.includes(id) ? s.hiddenWidgets.filter((w) => w !== id) : [...s.hiddenWidgets, id] })),
       addBodyMetric: (m) => set((s) => ({ bodyMetrics: [...s.bodyMetrics, m].sort((a, b) => a.date.localeCompare(b.date)) })),
+      toggleTipFavorite: (id) => set((s) => ({ tipFavorites: s.tipFavorites.includes(id) ? s.tipFavorites.filter((x) => x !== id) : [...s.tipFavorites, id] })),
+      toggleTipHidden: (id) => set((s) => ({ tipHidden: s.tipHidden.includes(id) ? s.tipHidden.filter((x) => x !== id) : [...s.tipHidden, id] })),
+      toggleTipDone: (id, date = dateKey()) =>
+        set((s) => {
+          const cur = s.tipDone[id] ?? [];
+          return { tipDone: { ...s.tipDone, [id]: cur.includes(date) ? cur.filter((d) => d !== date) : [...cur, date] } };
+        }),
       markGroomed: (taskId, date = dateKey()) => set((s) => ({ groomingLog: { ...s.groomingLog, [taskId]: date } })),
       toggleOral: (key, date = dateKey()) =>
         set((s) => ({ oral: { ...s.oral, [date]: { ...s.oral[date], [key]: !s.oral[date]?.[key] } } })),

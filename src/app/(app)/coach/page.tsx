@@ -40,6 +40,11 @@ export default function CoachPage() {
     if (messages.length) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
   useEffect(() => () => abortRef.current?.abort(), []);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (q) setInput(q.slice(0, 2000));
+  }, []);
 
   async function send(text: string) {
     const content = text.trim();

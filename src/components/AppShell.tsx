@@ -25,6 +25,7 @@ import {
   Smile,
   SprayCan,
   Waves,
+  Library,
   type LucideIcon,
 } from "lucide-react";
 import { useStore, computeXP, computeStreak } from "@/lib/store";
@@ -64,6 +65,7 @@ export const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
       { href: "/oral", key: "nav.oral", icon: Smile },
       { href: "/fragrance", key: "nav.fragrance", icon: SprayCan },
       { href: "/debloat", key: "nav.debloat", icon: Waves },
+      { href: "/tips", key: "nav.tips", icon: Library },
     ],
   },
   {
