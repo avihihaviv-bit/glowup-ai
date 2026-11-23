@@ -4,6 +4,7 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
 import {
   ConcernAnalysisSchema,
+  FaceScanReportSchema,
   FaceRatingsSchema,
   HairRatingsSchema,
   BodyRatingsSchema,
@@ -238,4 +239,33 @@ ${profileText(input.profile)}
 ${input.image ? "צורפה תמונה. התייחסו רק למה שבאמת נראה, ואל תאבחנו." : "לא צורפה תמונה, ולכן אל תתארו מראה."}`,
   });
   return parseWith(ConcernAnalysisSchema, CONCERN_SYSTEM + langRule(input.profile), content, "medium");
+}
+
+const FACE_SCAN_SYSTEM = `אתה GLOWUP AI. אתה מקבל עד 3 תמונות פנים (חזית, ושני חצאי-פרופיל) ותצפיות שחושבו מנקודות ציון (landmarks) בדפדפן.
+${SAFETY_RULES}
+כללים לדוח:
+- כל קטגוריה: מה נראה (observation), מה זה אומר בפועל לטיפוח/סטייל/שגרה (meaning), רמת ביטחון, המלצות מעשיות, ומה אי אפשר להסיק מתמונה דו-ממדית (cannotConclude).
+- אסור להמציא זוויות, מרחקים, אחוזונים או מדידות אנטומיות. מותר להתייחס לתצפיות שסופקו כהערכות יחסיות בתמונה.
+- אסור לדרג אטרקטיביות, להשוות לאנשים אחרים או לקבוצות גיל, או לתאר מראה כמדד לערך עצמי.
+- אין אבחון רפואי. בעור ובאזור העיניים: רק מה שנראה, והפניה לאיש מקצוע כשמתאים.
+- אם תמונה חסרה או לא שמישה, ציין זאת בקטגוריות הרלוונטיות והורד ביטחון.`;
+
+export async function analyzeFaceScan(input: {
+  profile?: unknown;
+  front: { mediaType: "image/jpeg" | "image/png" | "image/webp"; data: string };
+  left?: { mediaType: "image/jpeg" | "image/png" | "image/webp"; data: string };
+  right?: { mediaType: "image/jpeg" | "image/png" | "image/webp"; data: string };
+  observations: string;
+}) {
+  const content: Anthropic.Beta.Messages.BetaContentBlockParam[] = [];
+  const add = (label: string, img?: { mediaType: "image/jpeg" | "image/png" | "image/webp"; data: string }) => {
+    if (!img) return;
+    content.push({ type: "text", text: label });
+    content.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } });
+  };
+  add("תמונת חזית:", input.front);
+  add("חצי פרופיל (ראש מסובב שמאלה):", input.left);
+  add("חצי פרופיל (ראש מסובב ימינה):", input.right);
+  content.push({ type: "text", text: `תצפיות מנקודות ציון (הערכות יחסיות מתמונה דו-ממדית):\n${input.observations}\n${profileText(input.profile)}\nכתוב את הדוח.` });
+  return parseWith(FaceScanReportSchema, FACE_SCAN_SYSTEM + langRule(input.profile), content, "medium");
 }

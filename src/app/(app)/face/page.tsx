@@ -1,132 +1,93 @@
 "use client";
 import { useState } from "react";
-import { ScanFace, Sparkles } from "lucide-react";
-import { useAIStatus } from "@/lib/api";
-import { useAnalysis } from "@/lib/useAnalysis";
+import { ScanFace, History } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { demoFace } from "@/lib/demo";
-import { FACE_SHAPE_INFO, type FaceShape } from "@/lib/knowledge";
+import { heDate } from "@/lib/utils";
+import { Badge, Card, EmptyState, PageHeader, Segmented } from "@/components/ui";
+import { ScanWizard } from "@/components/face/ScanWizard";
+import { ScanReport } from "@/components/face/ScanReport";
+import { useImageUrl } from "@/components/StoredImage";
+import { AnalysisHistory, FaceResult } from "@/components/results";
+import type { FaceScan } from "@/lib/types";
 import type { FaceAnalysis } from "@/lib/schemas";
-import { Button, Card, ErrorBox, PageHeader, SectionTitle, Spinner } from "@/components/ui";
-import { ImageUploader } from "@/components/ImageUploader";
-import { AnalysisHistory, CloseResult, FaceResult } from "@/components/results";
-import { PhotoRatings } from "@/components/PhotoRatings";
-import { cn } from "@/lib/utils";
+import type { AnalysisRecord } from "@/lib/types";
+
+type Tab = "scan" | "report" | "history";
 
 export default function FacePage() {
-  const ai = useAIStatus();
-  const { run, loading, error, record, setRecord } = useAnalysis("face");
-  const profile = useStore((s) => s.profile);
-  const manual = useStore((s) => s.manualFaceShape) as FaceShape | null;
-  const setManual = useStore((s) => s.setManualFaceShape);
-  const [image, setImage] = useState<Blob | null>(null);
-  const [glasses, setGlasses] = useState(false);
-  const needsShape = !ai.aiEnabled && !manual;
-
-  function start() {
-    run({
-      image,
-      extra: { wearsGlasses: glasses },
-      demo: (q) => demoFace(manual ?? "oval", q, profile, glasses),
-    });
-  }
+  const scans = useStore((s) => s.scans);
+  const [tab, setTab] = useState<Tab>(scans.length ? "report" : "scan");
+  const [selected, setSelected] = useState<string | null>(null);
+  const [legacy, setLegacy] = useState<AnalysisRecord | null>(null);
+  const current = scans.find((s) => s.id === selected) ?? scans[0];
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="ניתוח פנים"
-        subtitle="המלצות לתסרוקת, גבות, טיפוח, משקפיים וסטייל — בלי ציונים ובלי דירוגים."
-        icon={<ScanFace className="size-5" />}
-        actions={record && <CloseResult onClick={() => setRecord(null)} />}
+      <PageHeader title="סריקת פנים" subtitle="סריקה מודרכת מ-3 זוויות, נקודות ציון אמיתיות ודוח מפורט. בלי ציוני יופי." icon={<ScanFace className="size-5" />} />
+      <Segmented<Tab>
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: "scan", label: "סריקה חדשה" },
+          { value: "report", label: "הדוח" },
+          { value: "history", label: `היסטוריה (${scans.length})` },
+        ]}
       />
-
-      {record ? (
-        <FaceResult r={record.result as FaceAnalysis} source={record.source} />
-      ) : (
-        <div className="grid gap-6 lg:grid-cols-5">
-          <Card className="lg:col-span-2">
-            <SectionTitle>1. העלאת תמונה</SectionTitle>
-            <ImageUploader
-              value={image}
-              onChange={setImage}
-              hint="תמונת פנים ברורה מלפנים"
-              tips={["אור יום רך מול הפנים", "מבט ישר למצלמה, בגובה העיניים", "שיער מחוץ לפנים, בלי משקפי שמש", "בלי פילטרים"]}
-            />
-          </Card>
-
-          <div className="space-y-4 lg:col-span-3">
-            {!ai.loading && !ai.aiEnabled && (
-              <Card>
-                <SectionTitle>2. בחירת צורת פנים (מצב דמו)</SectionTitle>
-                <p className="mb-3 text-sm text-muted">
-                  במצב דמו אין AI שמנתח את התמונה, לכן בחרו את הצורה הקרובה ביותר לפי התיאור. מסתכלים במראה: מה הרוחב של המצח, הלחיים והלסת, ומה היחס בין אורך לרוחב?
-                </p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {(Object.keys(FACE_SHAPE_INFO) as FaceShape[]).map((k) => (
-                    <button
-                      key={k}
-                      onClick={() => setManual(k)}
-                      className={cn(
-                        "rounded-xl border p-3 text-right transition",
-                        manual === k ? "border-accent bg-accent-soft" : "border-line bg-surface-2 hover:border-line-strong",
-                      )}
-                    >
-                      <div className="flex items-center gap-2 font-medium">
-                        <FaceShapeIcon shape={k} /> {FACE_SHAPE_INFO[k].label}
-                      </div>
-                      <div className="mt-1 text-xs text-muted">{FACE_SHAPE_INFO[k].identify}</div>
-                    </button>
-                  ))}
-                </div>
-              </Card>
-            )}
-            <Card>
-              <SectionTitle>{ai.aiEnabled ? "2." : "3."} פרטים נוספים</SectionTitle>
-              <label className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-3 text-sm">
-                <input type="checkbox" checked={glasses} onChange={(e) => setGlasses(e.target.checked)} className="size-4" />
-                אני מרכיב/ה משקפיים (לקבלת המלצות מסגרות)
-              </label>
-              {error && (
-                <div className="mt-4">
-                  <ErrorBox message={error} onRetry={start} />
-                </div>
-              )}
-              {loading ? (
-                <Spinner label={ai.aiEnabled ? "ה-AI מנתח את התמונה… (עד כחצי דקה)" : "מכינים המלצות…"} />
-              ) : (
-                <Button size="lg" className="mt-4 w-full" disabled={!image || needsShape} icon={<Sparkles className="size-4" />} onClick={start}>
-                  {ai.aiEnabled ? "נתח עם AI" : "קבל המלצות (דמו)"}
-                </Button>
-              )}
-              {!image && <p className="mt-2 text-center text-xs text-dim">העלו תמונה כדי להמשיך</p>}
-              <p className="mt-4 text-xs leading-relaxed text-dim">
-                ניתוח הפנים עצמו הוא המלצות טיפוח וסטייל מעשיות, ללא ציונים, ולא מנסה לזהות גיל, מוצא, בריאות או אישיות. דירוגים מספריים (18+) זמינים בנפרד למטה, רק במצב אישי.
-              </p>
-            </Card>
-          </div>
+      {tab === "scan" && (
+        <ScanWizard
+          onDone={(id) => {
+            setSelected(id);
+            setTab("report");
+          }}
+        />
+      )}
+      {tab === "report" &&
+        (current ? (
+          <ScanReport key={current.id} scan={current} />
+        ) : (
+          <EmptyState icon={<ScanFace className="size-5" />} title="עוד אין סריקות" text="בצעו סריקה ראשונה כדי לראות דוח." />
+        ))}
+      {tab === "history" && (
+        <div className="space-y-4">
+          {scans.length ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {scans.map((s) => (
+                <ScanThumb
+                  key={s.id}
+                  scan={s}
+                  onOpen={() => {
+                    setSelected(s.id);
+                    setTab("report");
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={<History className="size-5" />} title="עוד אין היסטוריה" text="כל סריקה נשמרת כאן, ואפשר להשוות ביניהן." />
+          )}
+          {legacy ? <FaceResult r={legacy.result as FaceAnalysis} source={legacy.source} /> : <AnalysisHistory type="face" onOpen={setLegacy} />}
         </div>
       )}
-
-      {!record && <PhotoRatings scope="face" image={image} />}
-
-      <AnalysisHistory type="face" onOpen={setRecord} />
     </div>
   );
 }
 
-function FaceShapeIcon({ shape }: { shape: FaceShape }) {
-  const paths: Record<FaceShape, string> = {
-    oval: "M12 2c4 0 6 4 6 9s-2.5 11-6 11-6-6-6-11 2-9 6-9z",
-    round: "M12 3a8 8 0 100 18 8 8 0 000-18z",
-    square: "M5 4h14v12c0 3-3 5-7 5s-7-2-7-5z",
-    rectangle: "M6 2h12v15c0 3-3 5-6 5s-6-2-6-5z",
-    heart: "M4 4h16c0 6-3 18-8 18S4 10 4 4z",
-    diamond: "M12 2l6 9-6 11-6-11z",
-    triangle: "M8 3h8l4 15c0 2-4 4-8 4s-8-2-8-4z",
-  };
+function ScanThumb({ scan, onOpen }: { scan: FaceScan; onOpen: () => void }) {
+  const url = useImageUrl(scan.images.front);
   return (
-    <svg viewBox="0 0 24 24" className="size-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.8}>
-      <path d={paths[shape]} />
-    </svg>
+    <Card interactive className="overflow-hidden p-0">
+      <button onClick={onOpen} className="block w-full text-start">
+        {url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={url} alt="" className="aspect-[3/4] w-full object-cover" />
+        ) : (
+          <div className="skeleton aspect-[3/4]" />
+        )}
+        <div className="flex items-center justify-between p-3">
+          <span className="text-sm font-medium">{heDate(scan.date)}</span>
+          <Badge tone={scan.report ? "accent" : "default"}>{scan.report ? "AI" : "מכשיר"}</Badge>
+        </div>
+      </button>
+    </Card>
   );
 }

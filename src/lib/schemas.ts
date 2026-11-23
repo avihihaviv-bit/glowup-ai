@@ -190,6 +190,38 @@ export type HairRatings = z.infer<typeof HairRatingsSchema>;
 export type BodyRatings = z.infer<typeof BodyRatingsSchema>;
 export type PhotoRatings = FaceRatings | HairRatings | BodyRatings;
 
+/* ---------- Face scan report (no scores) ---------- */
+
+export const FACE_CATEGORIES = [
+  "faceShape", "proportions", "symmetry", "jawline", "chin", "cheekbones", "brows",
+  "eyeArea", "underEye", "nose", "lips", "skin", "facialPosture", "photoQuality",
+] as const;
+
+const FaceCard = z.object({
+  observation: z.string().describe("What is visible in the photos, neutral wording"),
+  meaning: z.string().describe("What this practically means for grooming/style/routine"),
+  confidence: z.enum(["low", "medium", "high"]),
+  recommendations: z.array(z.string()),
+  cannotConclude: z.string().describe("What cannot be concluded from 2D photos"),
+});
+
+export const FaceScanReportSchema = z.object({
+  summary: z.string(),
+  cards: z.object(Object.fromEntries(FACE_CATEGORIES.map((k) => [k, FaceCard])) as Record<(typeof FACE_CATEGORIES)[number], typeof FaceCard>),
+  hairstyleIdeas: z.array(z.string()),
+  groomingPriorities: z.array(z.string()),
+});
+export type FaceScanReport = z.infer<typeof FaceScanReportSchema>;
+
+const Img = z.object({ mediaType: z.enum(["image/jpeg", "image/png", "image/webp"]), data: z.string().max(7_000_000) });
+export const FaceScanRequest = z.object({
+  profile: z.lazy(() => ProfileContext).optional(),
+  front: Img,
+  left: Img.optional(),
+  right: Img.optional(),
+  observations: z.string().max(3000),
+});
+
 /* ---------- Concerns ---------- */
 
 export const ConcernAnalysisSchema = z.object({

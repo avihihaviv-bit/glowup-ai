@@ -55,7 +55,7 @@ export default function Dashboard() {
   const day = planDay(s.plan, today);
   const hidden = new Set(s.hiddenWidgets);
   const show = (id: string) => !hidden.has(id);
-  const lastScan = s.analyses.find((a) => a.type === "face");
+  const lastScan = s.scans[0];
   const [checkin, setCheckin] = useState(false);
   const [explain, setExplain] = useState(false);
   const [customize, setCustomize] = useState(false);
@@ -112,7 +112,7 @@ export default function Dashboard() {
                   <ScanFace className="size-4 text-accent" /> סטטוס סריקה
                 </div>
                 <div className="mt-1 text-sm font-semibold">
-                  {lastScan ? `סריקה אחרונה: ${heDate(lastScan.date)} · ${lastScan.source === "ai" ? "ניתוח AI" : "מצב דמו"}` : "עוד לא ביצעת סריקת פנים"}
+                  {lastScan ? `סריקה אחרונה: ${heDate(lastScan.date)} · ${lastScan.report ? "דוח AI" : "תצפיות מהמכשיר"}` : "עוד לא ביצעת סריקת פנים"}
                 </div>
                 <p className="mt-0.5 text-xs text-muted">ניתוח מתמונה דו-ממדית. אין כאן מדידת עומק.</p>
               </div>
@@ -132,7 +132,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="mx-auto w-56 sm:w-64">
-              <FaceVisual imageId={lastScan?.imageId} label={lastScan?.imageId ? "התמונה מהסריקה האחרונה" : "איור להמחשה"} />
+              <FaceVisual imageId={lastScan?.images.front} label={lastScan ? "התמונה מהסריקה האחרונה" : "איור להמחשה"} />
             </div>
           </div>
         </motion.div>

@@ -245,17 +245,17 @@ function useNotifications() {
   const { aiEnabled, loading } = useAIStatus();
   const checkins = useStore((s) => s.checkins);
   const concerns = useStore((s) => s.concerns);
-  const analyses = useStore((s) => s.analyses);
+  const scans = useStore((s) => s.scans);
   const plan = useStore((s) => s.plan);
   return useMemo(() => {
     const out: { id: string; text: string; href: string }[] = [];
     if (!checkins[dateKey()]) out.push({ id: "checkin", text: t("notif.checkin"), href: "/" });
     if (concerns.some((c) => !c.analysis)) out.push({ id: "concern", text: t("notif.concern"), href: "/concerns" });
-    if (!analyses.some((a) => a.type === "face")) out.push({ id: "scan", text: t("notif.scan"), href: "/face" });
+    if (!scans.length) out.push({ id: "scan", text: t("notif.scan"), href: "/face" });
     if (!plan) out.push({ id: "plan", text: t("notif.plan"), href: "/plan" });
     if (!loading && !aiEnabled) out.push({ id: "demo", text: t("notif.demo"), href: "/settings" });
     return out;
-  }, [t, checkins, concerns, analyses, plan, aiEnabled, loading]);
+  }, [t, checkins, concerns, scans, plan, aiEnabled, loading]);
 }
 
 function NotificationBell() {

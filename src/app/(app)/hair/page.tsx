@@ -42,7 +42,8 @@ export default function HairPage() {
 function useFaceShape(): string | null {
   const analyses = useStore((s) => s.analyses);
   const manual = useStore((s) => s.manualFaceShape);
-  return analyses.find((a) => a.type === "face")?.result?.faceShape?.shape ?? manual ?? null;
+  const scan = useStore((s) => s.scans[0]);
+  return scan?.observations?.shapeGuess ?? analyses.find((a) => a.type === "face")?.result?.faceShape?.shape ?? manual ?? null;
 }
 
 function Analysis() {

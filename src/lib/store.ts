@@ -6,6 +6,7 @@ import type {
   Checkin,
   CoachMessage,
   Concern,
+  FaceScan,
   ConcernStatus,
   HaircutTried,
   Lang,
@@ -42,6 +43,7 @@ interface State {
   sidebarCollapsed: boolean;
   hiddenWidgets: string[];
   bodyMetrics: BodyMetric[];
+  scans: FaceScan[];
 }
 
 export interface BodyMetric {
@@ -61,6 +63,9 @@ interface Actions {
   toggleWidget: (id: string) => void;
   addBodyMetric: (m: BodyMetric) => void;
   removeBodyMetric: (id: string) => void;
+  addScan: (s: FaceScan) => void;
+  updateScan: (id: string, patch: Partial<FaceScan>) => void;
+  removeScan: (id: string) => void;
   setAdvancedRatings: (v: boolean) => void;
   setLang: (l: Lang) => void;
   addConcern: (c: Concern) => void;
@@ -121,6 +126,7 @@ const initial: State = {
   sidebarCollapsed: false,
   hiddenWidgets: [],
   bodyMetrics: [],
+  scans: [],
 };
 
 export const useStore = create<State & Actions>()(
@@ -132,6 +138,13 @@ export const useStore = create<State & Actions>()(
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
       toggleWidget: (id) => set((s) => ({ hiddenWidgets: s.hiddenWidgets.includes(id) ? s.hiddenWidgets.filter((w) => w !== id) : [...s.hiddenWidgets, id] })),
       addBodyMetric: (m) => set((s) => ({ bodyMetrics: [...s.bodyMetrics, m].sort((a, b) => a.date.localeCompare(b.date)) })),
+      addScan: (scan) => set((s) => ({ scans: [scan, ...s.scans].slice(0, 40) })),
+      updateScan: (id, patch) => set((s) => ({ scans: s.scans.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
+      removeScan: (id) => {
+        const sc = get().scans.find((x) => x.id === id);
+        Object.values(sc?.images ?? {}).forEach((img) => deleteImage(img));
+        set((s) => ({ scans: s.scans.filter((x) => x.id !== id) }));
+      },
       removeBodyMetric: (id) => set((s) => ({ bodyMetrics: s.bodyMetrics.filter((m) => m.id !== id) })),
       addConcern: (c) => set((s) => ({ concerns: [c, ...s.concerns] })),
       updateConcern: (id, patch) => set((s) => ({ concerns: s.concerns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
@@ -212,6 +225,7 @@ export const useStore = create<State & Actions>()(
           analyses: s.analyses.map((a) => ({ ...a, imageId: undefined })),
           haircuts: s.haircuts.map((h) => ({ ...h, imageId: undefined })),
           concerns: s.concerns.map((c) => ({ ...c, imageId: undefined })),
+          scans: [],
           profile: s.profile ? { ...s.profile, avatarImageId: undefined } : null,
         }));
       },

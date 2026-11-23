@@ -205,3 +205,25 @@ export interface CoachMessage {
   ts: number;
   demo?: boolean;
 }
+
+export type ScanStepId = "front" | "left" | "right";
+
+export interface ScanImageQuality {
+  brightness: number;
+  sharpness: number;
+  width: number;
+  height: number;
+  issues: string[];
+}
+
+export interface FaceScan {
+  id: string;
+  date: string;
+  createdAt: string;
+  images: Partial<Record<ScanStepId, string>>; // IndexedDB image ids
+  observations?: { widthToHeight: number; jawToCheek: number; foreheadToCheek: number; midToLower: number; asymmetry: number; rollDeg: number; turn: number; shapeGuess: string; aspect: number };
+  landmarks: number[]; // packed front landmarks (x, y, z) from MediaPipe, 2D photo + estimated relative depth
+  quality: Partial<Record<ScanStepId, ScanImageQuality>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  report?: { source: "ai"; date: string; data: any };
+}
