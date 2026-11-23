@@ -83,7 +83,7 @@ export function RatingsCard() {
             <div className="text-xs text-muted">{t.label}</div>
             <div className="mt-1 text-3xl font-bold tabular-nums">{t.value ?? "—"}</div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-3" role="img" aria-label={`${t.label}: ${t.value ?? "אין עדיין נתונים"}`}>
-              <div className="h-full rounded-full bg-gradient-to-l from-green to-accent transition-all" style={{ width: `${t.value ?? 0}%` }} />
+              <div className="h-full rounded-full bg-gradient-to-l from-cyan to-accent transition-all" style={{ width: `${t.value ?? 0}%` }} />
             </div>
             <div className="mt-2 text-[11px] leading-snug text-dim">{t.value === null ? "אין עדיין נתונים" : t.hint}</div>
           </div>

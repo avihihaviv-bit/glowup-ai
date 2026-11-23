@@ -46,7 +46,7 @@ export default function ProgressPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <div className="flex items-center gap-4">
-            <div className="grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-accent to-green text-2xl font-black text-white">{lvl.level}</div>
+            <div className="grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-cyan to-accent text-2xl font-black text-white">{lvl.level}</div>
             <div className="flex-1">
               <div className="text-sm text-muted">רמה {lvl.level}</div>
               <div className="text-2xl font-bold">{lvl.name}</div>
@@ -125,9 +125,7 @@ export default function ProgressPage() {
               {categoryStats.map(([cat, v]) => (
                 <div key={cat}>
                   <div className="mb-1 flex justify-between text-sm">
-                    <span>
-                      {CATEGORY_META[cat]?.emoji} {CATEGORY_META[cat]?.label}
-                    </span>
+                    <span>{CATEGORY_META[cat]?.label}</span>
                     <span className="text-muted">
                       {v.done}/{v.total}
                     </span>

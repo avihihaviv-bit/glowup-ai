@@ -158,7 +158,7 @@ function ProductsCard() {
       ) : (
         <EmptyState icon={<Droplets className="size-5" />} title="אין מוצרים עדיין" text="הוסיפו את המוצרים שכבר יש לכם — השגרה תתבסס עליהם במקום לקנות חדשים." />
       )}
-      <p className="mt-3 text-xs text-dim">❤️ = מוצרים שאהבתי (מופיעים גם במעקב ההתקדמות)</p>
+      <p className="mt-3 text-xs text-dim">לב מסמן מוצרים שאהבת. הם מופיעים גם בדשבורד.</p>
       <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.name ? "עריכת מוצר" : "מוצר חדש"}>
         {editing && (
           <div className="space-y-4">

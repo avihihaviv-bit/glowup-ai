@@ -53,17 +53,14 @@ export function greeting() {
   return "לילה טוב";
 }
 
-export const CATEGORY_META: Record<
-  string,
-  { label: string; color: string; emoji: string }
-> = {
-  skin: { label: "טיפוח עור", color: "#c4b5fd", emoji: "🧴" },
-  hair: { label: "שיער", color: "#f0abfc", emoji: "💇" },
-  style: { label: "סטייל", color: "#93c5fd", emoji: "👕" },
-  fitness: { label: "כושר", color: "#4ade80", emoji: "💪" },
-  posture: { label: "יציבה", color: "#5eead4", emoji: "🧍" },
-  sleep: { label: "שינה", color: "#a5b4fc", emoji: "😴" },
-  nutrition: { label: "תזונה", color: "#fde68a", emoji: "🥗" },
-  mindset: { label: "ביטחון ותודעה", color: "#fca5a5", emoji: "🧠" },
+export const CATEGORY_META: Record<string, { label: string; color: string; emoji: string }> = {
+  skin: { label: "טיפוח עור", color: "#2878f0", emoji: "" },
+  hair: { label: "שיער", color: "#174ea6", emoji: "" },
+  style: { label: "סטייל", color: "#3a8ee6", emoji: "" },
+  fitness: { label: "כושר", color: "#1f6fd1", emoji: "" },
+  posture: { label: "יציבה", color: "#4aa3e8", emoji: "" },
+  sleep: { label: "שינה", color: "#5b7fc4", emoji: "" },
+  nutrition: { label: "תזונה", color: "#2f86c9", emoji: "" },
+  mindset: { label: "ביטחון ותודעה", color: "#4f6fa8", emoji: "" },
 };
 export const now = () => Date.now();

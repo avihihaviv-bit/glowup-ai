@@ -122,7 +122,7 @@ export default function PlanPage() {
             {selTasks.map((t) => (
               <TaskItem key={t.id} task={t} date={selDate} />
             ))}
-            {!selTasks.length && <p className="text-sm text-muted">יום מנוחה ✨</p>}
+            {!selTasks.length && <p className="text-sm text-muted">יום מנוחה</p>}
           </div>
           {selTasks.length > 0 && (
             <div className="mt-4">
@@ -144,9 +144,7 @@ export default function PlanPage() {
             <div key={t.id} className="rounded-xl border border-line bg-surface-2/60 p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="text-sm font-medium">{t.title}</div>
-                <span className="shrink-0 text-xs" style={{ color: CATEGORY_META[t.category]?.color }}>
-                  {CATEGORY_META[t.category]?.emoji}
-                </span>
+                <span className="mt-1.5 size-2 shrink-0 rounded-full" style={{ background: CATEGORY_META[t.category]?.color }} />
               </div>
               <div className="mt-1 text-xs text-dim">
                 {{ daily: "יומי", "3x_week": "3× בשבוע", weekly: "שבועי", once: "חד-פעמי" }[t.frequency]} · משבוע {t.startWeek}

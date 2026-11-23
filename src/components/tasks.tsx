@@ -35,8 +35,8 @@ export function TaskItem({ task, date = dateKey(), compact }: { task: PlanTask; 
         <button className="min-w-0 flex-1 text-right" onClick={() => setOpen((o) => !o)}>
           <div className={cn("truncate text-sm font-medium", done && "text-muted line-through")}>{task.title}</div>
           <div className="mt-0.5 flex items-center gap-2 text-xs text-dim">
-            <span style={{ color: meta?.color }}>
-              {meta?.emoji} {meta?.label}
+            <span className="inline-flex items-center gap-1" style={{ color: meta?.color }}>
+              <span className="size-1.5 rounded-full" style={{ background: meta?.color }} /> {meta?.label}
             </span>
             {task.minutes > 0 && (
               <span className="inline-flex items-center gap-0.5">

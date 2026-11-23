@@ -181,9 +181,9 @@ function Gallery() {
       <div className="flex flex-wrap items-center gap-2">
         <Chip active={filter === "all"} onClick={() => setFilter("all")}>הכל</Chip>
         <Chip active={filter === "recommended"} onClick={() => setFilter("recommended")}>
-          ⭐ מומלץ לי{!faceShape && " (דרוש ניתוח פנים)"}
+          מומלץ לי{!faceShape && " (דרוש ניתוח פנים)"}
         </Chip>
-        <Chip active={filter === "favorites"} onClick={() => setFilter("favorites")}>❤️ מועדפים ({favorites.length})</Chip>
+        <Chip active={filter === "favorites"} onClick={() => setFilter("favorites")}>מועדפים ({favorites.length})</Chip>
         <span className="mx-1 h-5 w-px bg-line" />
         {[
           ["any", "כל האורכים"],
@@ -253,7 +253,7 @@ function Gallery() {
             </div>
             <div className="rounded-xl bg-accent-soft p-4 text-sm">
               <div className="mb-1 flex items-center justify-between">
-                <span className="font-medium text-accent">✂️ מה לבקש מהספר</span>
+                <span className="font-medium text-accent">מה לבקש מהספר</span>
                 <CopyButton text={open.barberScript} />
               </div>
               {open.barberScript}
@@ -328,7 +328,7 @@ function Tried() {
                     <Trash2 className="size-4" />
                   </button>
                 </div>
-                <div className="mt-2 text-warn">{"★".repeat(h.rating)}{"☆".repeat(5 - h.rating)}</div>
+                <div className="mt-2 text-accent">{"★".repeat(h.rating)}{"☆".repeat(5 - h.rating)}</div>
                 {h.notes && <p className="mt-2 text-sm text-muted">{h.notes}</p>}
               </div>
             </Card>
@@ -348,7 +348,7 @@ function Tried() {
           <Field label="כמה אהבת?">
             <div className="flex gap-1 text-2xl">
               {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} onClick={() => setRating(n)} className={n <= rating ? "text-warn" : "text-surface-3"}>
+                <button key={n} onClick={() => setRating(n)} className={n <= rating ? "text-accent" : "text-surface-3"}>
                   ★
                 </button>
               ))}

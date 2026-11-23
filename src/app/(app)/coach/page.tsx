@@ -132,7 +132,7 @@ export default function CoachPage() {
         <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
           {messages.length === 0 && (
             <div className="flex min-h-full flex-col items-center justify-center py-2 text-center">
-              <div className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-accent to-green text-white">
+              <div className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-cyan to-accent text-white">
                 <Sparkles className="size-7" />
               </div>
               <h2 className="mt-4 text-lg font-semibold">היי {profile.name}, במה נתמקד היום?</h2>

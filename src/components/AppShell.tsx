@@ -15,7 +15,6 @@ import {
   TrendingUp,
   Settings,
   MoreHorizontal,
-  Sparkles,
   FlaskConical,
   HeartHandshake,
   Bell,
@@ -85,8 +84,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (!mounted || !profile) {
     return (
       <div className="glow-bg grid min-h-dvh place-items-center">
-        <div className="flex items-center gap-2 text-muted">
-          <Sparkles className="size-5 animate-pulse text-accent" /> …
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-pulse">
+            <LogoMark size={52} />
+          </div>
+          <div className="h-1 w-24 overflow-hidden rounded-full bg-surface-3">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-accent" />
+          </div>
         </div>
       </div>
     );
@@ -97,18 +101,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar path={path} />
       <main className={cn("transition-[padding] duration-300", collapsed ? "lg:ps-[88px]" : "lg:ps-72")}>
         <TopBar />
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={path}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            className="mx-auto w-full max-w-6xl px-4 pb-28 pt-4 sm:px-6 lg:px-10 lg:pb-12 lg:pt-6"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={path}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8"
+        >
+          {children}
+        </motion.div>
       </main>
       <BottomNav path={path} />
     </div>
@@ -146,7 +147,8 @@ function Logo({ compact }: { compact?: boolean }) {
 function AIBadge() {
   const t = useT();
   const { aiEnabled, loading } = useAIStatus();
-  if (loading) return null;
+  // reserve the badge's space while loading so the header doesn't shift
+  if (loading) return <span className="inline-block h-5 w-[72px] rounded-full bg-surface-2" aria-hidden />;
   return aiEnabled ? (
     <span className="inline-flex items-center gap-1 rounded-full bg-green-soft px-2 py-0.5 text-[11px] font-medium text-green">
       <span className="size-1.5 rounded-full bg-green" /> {t("common.aiOn")}

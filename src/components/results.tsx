@@ -74,7 +74,7 @@ export function PhotoFeedbackCard({ photo }: { photo: FaceAnalysis["photo"] }) {
       </div>
       {photo.tips.length > 0 && (
         <div className="mt-3">
-          <List items={photo.tips} icon="💡" />
+          <List items={photo.tips} icon="•" />
         </div>
       )}
     </Card>
@@ -238,7 +238,7 @@ export function HairResult({ r, source }: { r: HairAnalysis; source: "ai" | "dem
       <Suggestions items={r.recommendedStyles} title="תספורות מומלצות" />
       {r.barberScript && (
         <Card className="border-accent/30 bg-accent-soft">
-          <SectionTitle action={<CopyButton text={r.barberScript} />}>✂️ מה להגיד לספר</SectionTitle>
+          <SectionTitle action={<CopyButton text={r.barberScript} />}>מה להגיד לספר</SectionTitle>
           <p className="text-sm leading-relaxed">{r.barberScript}</p>
         </Card>
       )}
@@ -263,7 +263,7 @@ export function HairResult({ r, source }: { r: HairAnalysis; source: "ai" | "dem
               <div key={i} className="text-sm">
                 <div className="font-medium">{p.type}</div>
                 <div className="text-muted">{p.why}</div>
-                <div className="text-xs text-green">💰 {p.budgetTip}</div>
+                <div className="text-xs text-accent-strong"> {p.budgetTip}</div>
               </div>
             ))}
           </div>
@@ -313,7 +313,7 @@ export function StyleResult({ r, source }: { r: StyleAnalysis; source: "ai" | "d
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <SectionTitle>👟 נעליים</SectionTitle>
+          <SectionTitle>נעליים</SectionTitle>
           <p className="text-sm text-muted">{r.shoes}</p>
         </Card>
         <Card>
@@ -350,7 +350,7 @@ export function StyleResult({ r, source }: { r: StyleAnalysis; source: "ai" | "d
               href={`https://www.pinterest.com/search/pins/?q=${encodeURIComponent(p.name + " outfit")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-xl bg-gradient-to-br from-accent-soft to-green-soft p-4 text-sm transition hover:brightness-110"
+              className="rounded-xl bg-gradient-to-br from-accent-soft to-white p-4 text-sm transition hover:brightness-110"
             >
               <div className="font-medium">{p.name}</div>
               <div className="mt-1 text-muted">{p.description}</div>
@@ -390,10 +390,10 @@ export function SkinResult({ r, source }: { r: SkinRoutine; source: "ai" | "demo
         <p className="text-sm leading-relaxed">{r.summary}</p>
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
-        {block("☀️ שגרת בוקר", r.morning)}
-        {block("🌙 שגרת ערב", r.evening)}
+        {block("שגרת בוקר", r.morning)}
+        {block("שגרת ערב", r.evening)}
       </div>
-      {block("📅 פעם בשבוע (אופציונלי)", r.weekly)}
+      {block("פעם בשבוע (אופציונלי)", r.weekly)}
       {r.productNotes.length > 0 && (
         <Card>
           <SectionTitle>המוצרים שלך</SectionTitle>
@@ -414,10 +414,10 @@ export function SkinResult({ r, source }: { r: SkinRoutine; source: "ai" | "demo
       )}
       <Card>
         <SectionTitle>טיפים</SectionTitle>
-        <List items={r.tips} icon="💡" />
+        <List items={r.tips} icon="•" />
       </Card>
       <div className="flex items-start gap-2 rounded-xl border border-line bg-surface-2 p-4 text-sm text-muted">
-        <span>🩺</span>
+        <span></span>
         <span>{r.dermatologistNote}</span>
       </div>
     </motion.div>
@@ -443,7 +443,7 @@ export function AnalysisHistory({ type, onOpen }: { type: AnalysisType; onOpen: 
               {a.imageId ? (
                 <StoredImage imageId={a.imageId} alt="" className="size-12 rounded-lg" />
               ) : (
-                <div className="grid size-12 place-items-center rounded-lg bg-surface-3 text-lg">📝</div>
+                <div className="grid size-12 place-items-center rounded-lg bg-surface-3 text-lg"></div>
               )}
               <div className="min-w-0">
                 <div className="text-sm font-medium">{heDate(a.date)}</div>

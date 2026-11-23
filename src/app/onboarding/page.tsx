@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, Globe, ShieldCheck, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Globe, ShieldCheck, Sparkles, Trash2, Wand2, Scissors, Droplets, Wind, Dumbbell, PersonStanding, Ruler, Moon, Apple, Droplet, Shirt, Smile, type LucideIcon } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type { Budget, Concern, ConcernCategory, Gender, Goal, GrowthSex, Lifestyle, Profile, Units } from "@/lib/types";
 import { createPlan } from "@/lib/planActions";
@@ -13,19 +13,19 @@ import { Button, Card, Chip, Field, Input, Modal, Select } from "@/components/ui
 import { ConcernForm } from "@/components/ConcernForm";
 import { cn, uid } from "@/lib/utils";
 
-const GOALS: { id: Goal; emoji: string }[] = [
-  { id: "grooming", emoji: "🪒" },
-  { id: "haircut", emoji: "💇" },
-  { id: "skin", emoji: "🧴" },
-  { id: "hairHealth", emoji: "🌿" },
-  { id: "muscle", emoji: "💪" },
-  { id: "posture", emoji: "🧍" },
-  { id: "growth", emoji: "📏" },
-  { id: "sleep", emoji: "😴" },
-  { id: "nutrition", emoji: "🥗" },
-  { id: "puffiness", emoji: "💧" },
-  { id: "style", emoji: "👕" },
-  { id: "confidence", emoji: "✨" },
+const GOALS: { id: Goal; icon: LucideIcon }[] = [
+  { id: "grooming", icon: Sparkles },
+  { id: "haircut", icon: Scissors },
+  { id: "skin", icon: Droplets },
+  { id: "hairHealth", icon: Wind },
+  { id: "muscle", icon: Dumbbell },
+  { id: "posture", icon: PersonStanding },
+  { id: "growth", icon: Ruler },
+  { id: "sleep", icon: Moon },
+  { id: "nutrition", icon: Apple },
+  { id: "puffiness", icon: Droplet },
+  { id: "style", icon: Shirt },
+  { id: "confidence", icon: Smile },
 ];
 
 const SCANS = [
@@ -170,7 +170,7 @@ export default function Onboarding() {
     <div className="glow-bg flex min-h-dvh flex-col items-center px-4 py-8">
       <div className="mb-6 flex w-full max-w-xl items-center justify-between">
         <div className="flex items-center gap-2.5" dir="ltr">
-          <div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-accent to-green text-white">
+          <div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-cyan to-accent text-white">
             <Sparkles className="size-5" />
           </div>
           <span className="text-xl font-extrabold tracking-wide">
@@ -309,7 +309,7 @@ export default function Onboarding() {
                           active ? "border-accent bg-accent-soft" : "border-line bg-surface-2 hover:border-line-strong",
                         )}
                       >
-                        <span className="text-2xl">{g.emoji}</span>
+                        <span className="grid size-9 place-items-center rounded-xl bg-accent-soft text-accent"><g.icon className="size-5" /></span>
                         <span className="text-sm font-medium">{t(`goal.${g.id}`)}</span>
                         {active && <Check className="absolute end-2 top-2 size-4 text-accent" />}
                       </button>
@@ -454,7 +454,7 @@ export default function Onboarding() {
 
             {step === 6 && (
               <div className="flex flex-col items-center py-6 text-center">
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 3, ease: "linear" }} className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-accent to-green text-white">
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 3, ease: "linear" }} className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-cyan to-accent text-white">
                   <Wand2 className="size-7" />
                 </motion.div>
                 <h2 className="mt-5 text-xl font-semibold">{t("ob.plan.title")}</h2>

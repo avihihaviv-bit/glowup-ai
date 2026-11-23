@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { Droplet, Minus, Plus } from "lucide-react";
+import { Droplet, Minus, Plus, Frown, Annoyed, Meh, Smile, Laugh } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type { Checkin } from "@/lib/types";
 import { cn, dateKey } from "@/lib/utils";
 import { Button, Field, Modal, Textarea } from "./ui";
 
-const MOODS = ["😞", "😕", "😐", "🙂", "😄"];
+const MOODS = [Frown, Annoyed, Meh, Smile, Laugh];
 
 export function CheckinModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
@@ -30,13 +30,14 @@ function CheckinForm({ onDone }: { onDone: () => void }) {
       <p className="text-sm text-muted">דקה אחת ביום שעוזרת לך (ולמאמן) להבין מה עובד. הנתונים נשמרים רק אצלך.</p>
       <Field label="איך מצב הרוח?">
         <div className="flex justify-between gap-2">
-          {MOODS.map((m, i) => (
+          {MOODS.map((M, i) => (
             <button
-              key={m}
+              key={i}
+              aria-label={`מצב רוח ${i + 1}`}
               onClick={() => set("mood", i + 1)}
-              className={cn("grid size-12 place-items-center rounded-xl border text-2xl transition", c.mood === i + 1 ? "border-accent bg-accent-soft scale-110" : "border-line bg-surface-2")}
+              className={cn("grid size-12 place-items-center rounded-xl border transition", c.mood === i + 1 ? "border-accent bg-accent-soft text-accent" : "border-line bg-white text-dim")}
             >
-              {m}
+              <M className="size-6" />
             </button>
           ))}
         </div>
@@ -50,9 +51,9 @@ function CheckinForm({ onDone }: { onDone: () => void }) {
           <Button size="sm" variant="secondary" onClick={() => set("waterGlasses", Math.max(0, c.waterGlasses - 1))} aria-label="פחות">
             <Minus className="size-4" />
           </Button>
-          <div className="flex flex-1 flex-wrap gap-1">
+          <div className="flex min-w-0 flex-1 justify-center gap-0.5 sm:gap-1">
             {Array.from({ length: 10 }).map((_, i) => (
-              <Droplet key={i} className={cn("size-5", i < c.waterGlasses ? "fill-accent text-accent" : "text-surface-3")} />
+              <Droplet key={i} className={cn("size-4 shrink-0 sm:size-5", i < c.waterGlasses ? "fill-accent text-accent" : "text-surface-3")} />
             ))}
           </div>
           <Button size="sm" variant="secondary" onClick={() => set("waterGlasses", Math.min(15, c.waterGlasses + 1))} aria-label="יותר">
@@ -63,7 +64,7 @@ function CheckinForm({ onDone }: { onDone: () => void }) {
       <Scale label="מודעות ליציבה היום" value={c.posture} onChange={(v) => set("posture", v)} />
       <label className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-3 text-sm">
         <input type="checkbox" checked={c.ateVeggies} onChange={(e) => set("ateVeggies", e.target.checked)} className="size-4 accent-[var(--green)]" />
-        אכלתי ירקות/פירות ברוב הארוחות 🥗
+        אכלתי ירקות/פירות ברוב הארוחות
       </label>
       <Field label="הערה / 3 הצלחות של היום (אופציונלי)">
         <Textarea value={c.note} onChange={(e) => set("note", e.target.value)} placeholder="למשל: הלכתי 20 דקות, שתיתי מים, הייתי בתור לספר…" maxLength={500} />

@@ -82,7 +82,7 @@ export default function ConcernsPage() {
           {concerns.map((c) => (
             <Card key={c.id} interactive className="p-0">
               <button className="flex w-full items-start gap-3 p-4 text-start" onClick={() => setOpenId(c.id)}>
-                {c.imageId ? <StoredImage imageId={c.imageId} alt="" className="size-14 shrink-0 rounded-xl" /> : <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-accent-soft text-xl">💬</div>}
+                {c.imageId ? <StoredImage imageId={c.imageId} alt="" className="size-14 shrink-0 rounded-xl" /> : <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent"><HeartHandshake className="size-6" /></div>}
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold">{c.title}</div>
                   {c.description && <p className="mt-0.5 line-clamp-2 text-sm text-muted">{c.description}</p>}
@@ -225,7 +225,7 @@ function Detail({ concern, busy, error, onBack, onAnalyze }: { concern: Concern;
                   <div key={i} className="rounded-xl bg-surface-2 p-3 text-sm">
                     <div className="font-medium">{p.type}</div>
                     <div className="text-muted">{p.why}</div>
-                    <div className="mt-1 text-xs text-green">💰 {p.budgetTip}</div>
+                    <div className="mt-1 text-xs text-accent-strong"> {p.budgetTip}</div>
                   </div>
                 ))}
               </div>
@@ -365,7 +365,7 @@ function ProgressLog({ concern }: { concern: Concern }) {
           {[...concern.progress].reverse().map((p, i) => (
             <li key={i} className="flex gap-3">
               <span className="text-dim">{heDate(p.date)}</span>
-              <span className="text-warn">{"★".repeat(p.rating)}</span>
+              <span className="text-accent">{"★".repeat(p.rating)}</span>
               <span className="min-w-0 text-muted">{p.note}</span>
             </li>
           ))}

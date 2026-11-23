@@ -33,7 +33,7 @@ export function Avatar({ imageId, name, size = 48 }: { imageId?: string; name: s
   const url = useImageUrl(imageId);
   return (
     <div
-      className="grid shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-accent/80 to-green/70 font-bold text-white ring-2 ring-line"
+      className="grid shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-cyan to-accent font-bold text-white ring-2 ring-line"
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {url ? (

@@ -30,7 +30,6 @@ import { TaskItem } from "@/components/tasks";
 import { CheckinModal } from "@/components/CheckinModal";
 import { WeeklyBars } from "@/components/charts";
 import { PrioritiesCard } from "@/components/Priorities";
-import { RatingsCard } from "@/components/RatingsCard";
 import { FaceVisual } from "@/components/FaceVisual";
 
 const WIDGETS = [
@@ -41,7 +40,6 @@ const WIDGETS = [
   { id: "routine", label: "השגרה הבאה" },
   { id: "products", label: "מוצרים שמורים" },
   { id: "timeline", label: "ציר התקדמות" },
-  { id: "ratings", label: "דירוגי הרגלים" },
 ] as const;
 
 export default function Dashboard() {
@@ -95,7 +93,7 @@ export default function Dashboard() {
       {/* HERO */}
       <div className="grid gap-5 lg:grid-cols-3">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-[28px] border border-white bg-gradient-to-br from-white via-white to-accent-soft p-6 shadow-lift lg:col-span-2 sm:p-8">
-          <div className="pointer-events-none absolute -end-20 -top-24 size-72 rounded-full bg-cyan/30 blur-3xl" />
+          <div className="pointer-events-none absolute -end-24 -top-28 size-80 rounded-full bg-cyan/20 blur-3xl" />
           <div className="relative grid items-center gap-6 sm:grid-cols-[1fr_auto]">
             <div>
               <p className="text-sm text-muted">{greeting()},</p>
@@ -165,9 +163,7 @@ export default function Dashboard() {
               </p>
               {byCat.map(([cat, v]) => (
                 <div key={cat} className="flex items-center justify-between">
-                  <span>
-                    {CATEGORY_META[cat]?.emoji} {CATEGORY_META[cat]?.label}
-                  </span>
+                  <span>{CATEGORY_META[cat]?.label}</span>
                   <span className="tabular-nums">
                     {v.done}/{v.total}
                   </span>
@@ -245,8 +241,6 @@ export default function Dashboard() {
         {show("timeline") && <TimelineWidget />}
       </div>
 
-      {show("ratings") && <RatingsCard />}
-
       <div className="flex justify-center">
         <Button variant="ghost" size="sm" icon={<SlidersHorizontal className="size-4" />} onClick={() => setCustomize(true)}>
           התאמה אישית של הדשבורד
@@ -285,7 +279,7 @@ function TipWidget() {
         {tip.minutes > 0 && <Badge>{tip.minutes} דק׳</Badge>}
         <Badge>{tip.when}</Badge>
       </div>
-      {tip.warning && <p className="mt-2 text-xs text-warn">⚠ {tip.warning}</p>}
+      {tip.warning && <p className="mt-2 text-xs text-warn">{tip.warning}</p>}
     </Card>
   );
 }

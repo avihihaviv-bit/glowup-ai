@@ -146,10 +146,10 @@ export function PhotoRatings({ scope, image }: { scope: Scope; image: Blob | nul
                       <div className="text-xs text-muted">{name}</div>
                       <div className="mt-1 text-3xl font-bold tabular-nums">{it.score}</div>
                       <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-3" role="img" aria-label={`${name}: ${it.score}`}>
-                        <div className="h-full rounded-full bg-gradient-to-l from-green to-accent" style={{ width: `${it.score}%` }} />
+                        <div className="h-full rounded-full bg-gradient-to-l from-cyan to-accent" style={{ width: `${it.score}%` }} />
                       </div>
                       <p className="mt-2 text-[11px] leading-snug text-dim">{it.note}</p>
-                      <p className="mt-1.5 flex gap-1 text-[11px] leading-snug text-green">
+                      <p className="mt-1.5 flex gap-1 text-[11px] leading-snug text-accent-strong">
                         <Lightbulb className="mt-0.5 size-3 shrink-0" /> {it.tip}
                       </p>
                     </div>

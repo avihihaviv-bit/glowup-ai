@@ -397,9 +397,9 @@ function Sleep() {
             ["📵", "30 דק׳ בלי מסכים", "טלפון נטען מחוץ למיטה"],
             ["🌡️", "חדר קריר וחשוך", "18-20 מעלות, וילון/מסכת עיניים"],
             ["🧘", "טקס הירגעות", "מקלחת, קריאה, נשימות 4-7-8"],
-          ].map(([e, t, d]) => (
+          ].map(([, t, d]) => (
             <div key={t} className="flex gap-3 rounded-xl bg-surface-2 p-3">
-              <span className="text-xl">{e}</span>
+              <span className="mt-1.5 size-2 shrink-0 rounded-full bg-accent" />
               <div>
                 <div className="font-medium">{t}</div>
                 <div className="text-xs text-muted">{d}</div>
@@ -439,9 +439,9 @@ function Nutrition() {
             ["💧", "מים כמשקה עיקרי", "8 כוסות כנקודת התחלה"],
             ["🍎", "נשנוש חכם", "פרי, אגוזים, יוגורט"],
             ["⏱️", "לאכול לאט", "20 דקות לארוחה, בלי מסך"],
-          ].map(([e, t, d]) => (
+          ].map(([, t, d]) => (
             <div key={t} className="flex gap-3 rounded-xl bg-surface-2 p-3">
-              <span className="text-xl">{e}</span>
+              <span className="mt-1.5 size-2 shrink-0 rounded-full bg-accent" />
               <div>
                 <div className="font-medium">{t}</div>
                 <div className="text-xs text-muted">{d}</div>
