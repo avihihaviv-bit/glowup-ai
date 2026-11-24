@@ -85,9 +85,79 @@ export function requestText(cat: AdvisorCat, p: AdvisorPref): string {
     .join(" · ");
 }
 
+export interface ParsedText {
+  season?: Season;
+  intensity?: Intensity;
+  occasion?: Occasion;
+  budget?: Budget;
+  budgetAmount?: number;
+  longLasting?: boolean;
+  hours?: number;
+}
+
+const PREFIXES = ["", "ו", "ב", "ל", "ה", "ש", "מ", "וב", "ול", "וה", "שב", "של"];
+function hasWord(tokens: string[], words: string[]) {
+  return tokens.some((t) => words.some((w) => PREFIXES.some((p) => t === p + w)));
+}
+
+/** Reads season, strength, longevity, occasion and budget out of free text, so the rules engine understands "winter, vanilla, lasts 6+ hours, up to 200 NIS". */
+export function parseText(text: string): ParsedText {
+  const t = low(text).replace(/[״"׳']/g, "");
+  const tokens = t.split(/[^\p{L}\d+]+/u).filter(Boolean);
+  const out: ParsedText = {};
+  if (hasWord(tokens, ["חורף", "חורפי", "חורפית", "winter"])) out.season = "winter";
+  else if (hasWord(tokens, ["קיץ", "קייצי", "קייצית", "summer"])) out.season = "summer";
+  else if (hasWord(tokens, ["סתיו", "סתווי", "autumn", "fall"])) out.season = "autumn";
+  else if (hasWord(tokens, ["אביב", "spring"])) out.season = "spring";
+
+  const negStrong = /לא\s+(ממש\s+|כל\s+כך\s+|מדי\s+|יותר\s+מדי\s+)?(חזק|בולט)/.test(t) || /חזק\s+מדי/.test(t);
+  if (negStrong || hasWord(tokens, ["עדין", "עדינה", "קליל", "קלילה", "דיסקרטי", "soft", "light"])) out.intensity = "soft";
+  else if (hasWord(tokens, ["חזק", "חזקה", "בולט", "בולטת", "מורגש", "נוכח", "strong", "beast"])) out.intensity = "bold";
+  else if (hasWord(tokens, ["בינוני", "מאוזן"])) out.intensity = "medium";
+
+  if (hasWord(tokens, ["עבודה", "משרד", "לימודים", "work", "office"])) out.occasion = "work";
+  else if (hasWord(tokens, ["דייט", "דייטים", "date"])) out.occasion = "date";
+  else if (hasWord(tokens, ["חתונה", "אירוע", "אירועים", "event"])) out.occasion = "event";
+  else if (hasWord(tokens, ["ערב", "ערבים", "יציאה", "יציאות", "מסיבה", "night"])) out.occasion = "evening";
+  else if (hasWord(tokens, ["ספורט", "אימון", "gym"])) out.occasion = "sport";
+  else if (hasWord(tokens, ["יומיומי", "יומיום", "daily"])) out.occasion = "daily";
+
+  const hours = t.match(/(\d{1,2})\s*\+?\s*(שעות|שעה|hours?|h\b)/);
+  if (hours) out.hours = Number(hours[1]);
+  if (hours || /מחזיק|מחזיקה|עמיד|לאורך\s+זמן|כל\s+היום|long.?lasting|longevity/.test(t)) out.longLasting = !hours || Number(hours[1]) >= 5;
+
+  const money = t.match(/(\d{2,4})\s*(שח|ש\s*ח|שקל|שקלים|₪|nis|ils)/) ?? t.match(/(₪)\s*(\d{2,4})/);
+  if (money) {
+    const n = Number(money[1] === "₪" ? money[2] : money[1]);
+    out.budgetAmount = n;
+    out.budget = n <= 250 ? "low" : n <= 500 ? "mid" : "any";
+  } else if (hasWord(tokens, ["זול", "זולה", "חסכוני", "cheap", "budget"])) out.budget = "low";
+  return out;
+}
+
+/** Labels for what was understood from the text, for display. */
+export function parsedLabels(x: ParsedText): string[] {
+  return [
+    x.season && SEASON_LABEL[x.season],
+    x.intensity && INTENSITY_LABEL[x.intensity],
+    x.occasion && OCCASION_LABEL[x.occasion],
+    x.longLasting && (x.hours ? `מחזיק ${x.hours}+ שעות` : "מחזיק הרבה"),
+    x.budgetAmount ? `עד ${x.budgetAmount} ש״ח` : x.budget === "low" && "תקציב חסכוני",
+  ].filter(Boolean) as string[];
+}
+
 /** Rules-based advice: used without an AI key. Built only from the knowledge base and the user's own items. */
-export function ruleAdvice(cat: AdvisorCat, p: AdvisorPref, ctx: OwnedCtx): Advice {
+export function ruleAdvice(cat: AdvisorCat, input: AdvisorPref, ctx: OwnedCtx): Advice {
   const def = CAT_BY_ID[cat];
+  // Explicit selections win; anything left empty is filled from the free text.
+  const parsed = parseText(input.love);
+  const p: AdvisorPref = {
+    ...input,
+    season: input.season ?? (def.hasSeason ? parsed.season : undefined),
+    intensity: input.intensity ?? (def.hasIntensity ? parsed.intensity : undefined),
+    occasion: input.occasion ?? (def.hasOccasion ? parsed.occasion : undefined),
+    budget: input.budget === "any" && parsed.budget ? parsed.budget : input.budget,
+  };
   const fromText = optionsFromText(cat, p.love).filter((id) => !p.avoid.includes(id));
   const likeIds = [...new Set([...p.likes, ...fromText])];
   let liked = def.options.filter((o) => likeIds.includes(o.id));
@@ -149,6 +219,17 @@ export function ruleAdvice(cat: AdvisorCat, p: AdvisorPref, ctx: OwnedCtx): Advi
         why: { soft: "EDC או EDT: קל וקרוב לעור.", medium: "EDT או EDP: נוכחות מאוזנת.", bold: "EDP או Parfum: מחזיק ומורגש יותר, ועדיין 1-3 ריסוסים." }[p.intensity],
         how: "",
       });
+    // Longevity
+    if (parsed.longLasting)
+      picks.push({
+        kind: "type",
+        title: parsed.hours ? `שיחזיק ${parsed.hours}+ שעות` : "שיחזיק הרבה זמן",
+        why: "חפשו EDP או Parfum, עם תווי בסיס כבדים: וניל, טונקה, ענבר, עצים או מאסק. הם מחזיקים הרבה יותר מהדרים ותווים ימיים.",
+        how: "לרסס על עור לח אחרי קרם לחות ללא ריח, או גם על הבגדים. לא לשפשף את פרקי הידיים.",
+      });
+    // Season-specific direction
+    if (p.season === "winter" && liked.some((o) => o.id === "sweet") && !liked.some((o) => ["amber", "spicy", "woody"].includes(o.id)))
+      picks.push({ kind: "type", title: "מתוק לחורף", why: "בחורף מתוק עובד הכי טוב כשיש לו גם בסיס חם: וניל עם ענבר, טונקה עם תבלינים (הל, קינמון) או וניל עם עצים. ככה הוא עשיר ומחזיק, ולא מתקתק מדי.", how: "" });
     // Season / occasion conflicts
     if (p.season === "summer" && liked.some((o) => ["sweet", "amber", "leather", "spicy"].includes(o.id)))
       avoid.push("בקיץ ריח מתוק או חם מורגש חזק יותר: ריסוס אחד, או גרסה קלה יותר (EDT).");
@@ -177,9 +258,15 @@ export function ruleAdvice(cat: AdvisorCat, p: AdvisorPref, ctx: OwnedCtx): Advi
 
   for (const o of liked) if (o.caution) avoid.push(o.caution);
   for (const o of avoided) avoid.push(`ביקשת בלי ${o.label}: לבדוק שלא כתוב ${o.lookFor.slice(0, 3).join(" / ")}.`);
-  if (p.budget === "low") avoid.push("בתקציב חסכוני: מוצרי פארם בסיסיים עובדים מצוין. בבשמים, בקבוקון קטן או דוגמית לפני בקבוק מלא.");
+  if (p.budget === "low")
+    avoid.push(
+      cat === "fragrance"
+        ? `${parsed.budgetAmount ? `בתקציב של עד ${parsed.budgetAmount} ש״ח` : "בתקציב חסכוני"}: חלק מהדוגמאות למעלה עשויות לעלות יותר בבקבוק מלא. אפשר לחפש גודל קטן (30-50 מ״ל), דיקאנט (חלוקה לבקבוקון), מבצעים, או בשמים זולים יותר באותה משפחת ריח. המחירים משתנים, אז בודקים לפני שקונים.`
+        : "בתקציב חסכוני: מוצרי פארם בסיסיים עובדים מצוין, ומחיר גבוה לא אומר תוצאה טובה יותר.",
+    );
 
-  const ex = p.love.trim() ? ` לפי מה שכתבת, ${fromText.length ? `זיהיתי: ${def.options.filter((o) => fromText.includes(o.id)).map((o) => o.label).join(", ")}.` : "לא זיהיתי מילות מפתח, אז התבססתי על הבחירות שלך."}` : "";
+  const understood = [...def.options.filter((o) => fromText.includes(o.id)).map((o) => o.label), ...parsedLabels(parsed)];
+  const ex = p.love.trim() ? ` לפי מה שכתבת, ${understood.length ? `הבנתי: ${understood.join(", ")}.` : "לא זיהיתי מילות מפתח, אז התבססתי על הבחירות שלך."}` : "";
   const summary = inferred
     ? `לא בחרת העדפה, אז זו נקודת פתיחה בטוחה: ${liked.map((o) => o.label).join(" ו")}.${ex}`
     : `אתה מחפש ${def.title}: ${liked.map((o) => o.label).join(", ")}${p.season ? `, ל${SEASON_LABEL[p.season]}` : ""}${p.occasion ? `, ל${OCCASION_LABEL[p.occasion]}` : ""}.${ex} למטה מה לחפש, מה כבר יש לך שמתאים, ומה כדאי לבדוק.`;

@@ -4,7 +4,7 @@ import { WandSparkles, SprayCan, Wind, Droplets, Scissors, ShowerHead, Smile, He
 import { useStore } from "@/lib/store";
 import { useAIStatus, postJSON, profileContext } from "@/lib/api";
 import { CAT_BY_ID, CATEGORIES, OCCASION_LABEL, SEASON_LABEL, INTENSITY_LABEL, BUDGET_LABEL, type AdvisorCat, type Budget, type Intensity, type Occasion, type Season } from "@/data/advisor";
-import { emptyPref, optionsFromText, ownedSummary, requestText, ruleAdvice, type Advice, type AdvisorPref } from "@/lib/advisor";
+import { emptyPref, optionsFromText, parseText, parsedLabels, ownedSummary, requestText, ruleAdvice, type Advice, type AdvisorPref } from "@/lib/advisor";
 import type { AdviceAI } from "@/lib/schemas";
 import { cn, dateKey, heDate, uid } from "@/lib/utils";
 import { Badge, Button, Card, Chip, ErrorBox, Field, PageHeader, SectionTitle, Segmented, Select, Spinner, Textarea } from "@/components/ui";
@@ -34,6 +34,7 @@ export default function AdvisorPage() {
   const pref = prefs[cat] ?? emptyPref();
   const update = (patch: Partial<AdvisorPref>) => setPref(cat, { ...pref, ...patch });
   const detected = useMemo(() => optionsFromText(cat, pref.love), [cat, pref.love]);
+  const understood = useMemo(() => parsedLabels(parseText(pref.love)), [pref.love]);
   const catHistory = useMemo(() => history.filter((h) => h.cat === cat), [history, cat]);
 
   const [result, setResult] = useState<{ cat: AdvisorCat; advice: Advice } | null>(null);
@@ -112,11 +113,14 @@ export default function AdvisorPage() {
           <Field label="במילים שלך: מה הכי חשוב לך" hint="אפשר לכתוב חופשי. מילים כמו ״וניל״, ״הדרים״ או ״בלי ריח״ מזוהות אוטומטית.">
             <Textarea id="adv-love" value={pref.love} onChange={(e) => update({ love: e.target.value })} placeholder={def.lovePlaceholder} maxLength={1500} />
           </Field>
-          {detected.length > 0 && (
+          {detected.length + understood.length > 0 && (
             <p className="-mt-3 flex flex-wrap items-center gap-1.5 text-xs text-muted">
               <Sparkles className="size-3.5 text-accent" /> זוהה מהטקסט:
               {detected.map((id) => (
                 <Badge key={id} tone="accent">{def.options.find((o) => o.id === id)?.label}</Badge>
+              ))}
+              {understood.map((l) => (
+                <Badge key={l}>{l}</Badge>
               ))}
             </p>
           )}
