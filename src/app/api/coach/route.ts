@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { aiEnabled, client, coachSystemPrompt, FALLBACK, MODEL } from "@/lib/ai/server";
+import { aiEnabled, coachSystemPrompt } from "@/lib/ai/server";
+import { getRouter } from "@/lib/ai/router";
 import { errorMessage, errorResponse, noAI } from "@/lib/ai/http";
 import { ProfileContext } from "@/lib/schemas";
 
@@ -27,28 +28,23 @@ export async function POST(req: Request) {
   const msgs = body.messages.slice(body.messages.findIndex((m) => m.role === "user"));
 
   try {
-    const stream = client().beta.messages.stream({
-      model: MODEL,
-      max_tokens: 8000,
-      ...FALLBACK,
-      output_config: { effort: "low" },
+    // Router picks the provider; failover is possible until the first token arrives.
+    const stream = await getRouter().streamText({
+      task: "coach",
       system: coachSystemPrompt(body.profile, body.context, body.focus),
       messages: msgs,
+      tier: "balanced",
+      effort: "low",
+      maxTokens: 8000,
     });
 
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-              controller.enqueue(encoder.encode(event.delta.text));
-            }
-          }
-          const final = await stream.finalMessage();
-          if (final.stop_reason === "refusal") {
-            controller.enqueue(encoder.encode("\n\n_לא אוכל לעזור בבקשה הזו. נסו לנסח אחרת._"));
-          }
+          for await (const text of stream.chunks) controller.enqueue(encoder.encode(text));
+          const final = await stream.done;
+          if (final.refusal) controller.enqueue(encoder.encode("\n\n_לא אוכל לעזור בבקשה הזו. נסו לנסח אחרת._"));
         } catch (err) {
           controller.enqueue(encoder.encode(`\n\n_⚠️ ${await errorMessage(err)}_`));
         } finally {
@@ -60,7 +56,7 @@ export async function POST(req: Request) {
       },
     });
     return new Response(readable, {
-      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-AI-Provider": stream.provider },
     });
   } catch (err) {
     return errorResponse(err);

@@ -1,6 +1,6 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
+import type Anthropic from "@anthropic-ai/sdk";
+import { getRouter, type Part, type Tier } from "./router";
 import type { z } from "zod";
 import {
   ConcernAnalysisSchema,
@@ -21,23 +21,13 @@ import {
   type AnalyzeRequestT,
 } from "@/lib/schemas";
 
+/** Kept for compatibility: the Anthropic model used when Anthropic is one of the router's providers. */
 export const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
 
+/** True when at least one AI provider (Anthropic, Gemini, Groq, OpenRouter) has a key on the server. */
 export function aiEnabled() {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return getRouter().enabled();
 }
-
-let _client: Anthropic | null = null;
-export function client() {
-  if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  return _client;
-}
-
-/** Server-side refusal fallback: if the primary model declines, the API retries on a suitable fallback model. */
-export const FALLBACK = {
-  betas: ["server-side-fallback-2026-07-01"],
-  fallbacks: "default" as const,
-};
 
 export const SAFETY_RULES = `
 עקרונות בטיחות ואתיקה (חובה):
@@ -67,28 +57,28 @@ function profileText(profile: unknown) {
   return `פרופיל המשתמש (נמסר ע״י המשתמש): ${JSON.stringify(profile)}`;
 }
 
+const TIER: Record<"low" | "medium" | "high", Tier> = { low: "fast", medium: "balanced", high: "deep" };
+
+function toParts(content: Anthropic.Beta.Messages.BetaContentBlockParam[]): Part[] {
+  return content.map((b) => {
+    if (b.type === "text") return { type: "text", text: b.text };
+    if (b.type === "image" && b.source.type === "base64") return { type: "image", mediaType: b.source.media_type as "image/jpeg" | "image/png" | "image/webp", data: b.source.data };
+    throw new AIError("סוג תוכן לא נתמך", 400);
+  });
+}
+
+/**
+ * Structured output through the multi-provider router (see ./router).
+ * `effort` keeps the original Anthropic behavior; other providers get a model tier.
+ */
 async function parseWith<T extends z.ZodType>(
   schema: T,
   system: string,
   content: Anthropic.Beta.Messages.BetaContentBlockParam[],
   effort: "low" | "medium" | "high" = "medium",
+  opts: { task?: string; tier?: Tier } = {},
 ): Promise<z.infer<T>> {
-  const res = await client().beta.messages.parse({
-    model: MODEL,
-    max_tokens: 16000,
-    ...FALLBACK,
-    system,
-    output_config: { effort, format: betaZodOutputFormat(schema) },
-    messages: [{ role: "user", content }],
-  });
-  if (res.stop_reason === "refusal") {
-    throw new AIError("הבקשה נדחתה על ידי מודל ה-AI. נסו תמונה או ניסוח אחר.", 422);
-  }
-  if (res.stop_reason === "max_tokens") {
-    throw new AIError("התשובה נקטעה. נסו שוב.", 502);
-  }
-  if (!res.parsed_output) throw new AIError("לא התקבלה תשובה תקינה מה-AI.", 502);
-  return res.parsed_output as z.infer<T>;
+  return getRouter().generateObject({ task: opts.task ?? "analysis", system, parts: toParts(content), schema, tier: opts.tier ?? TIER[effort], effort });
 }
 
 export class AIError extends Error {
@@ -110,7 +100,7 @@ export async function analyze(req: AnalyzeRequestT) {
       type: "text",
       text: `תאר רק מאפיינים נראים לכל אזור: מראה דמוי אקנה, אדמומיות, יובש נראה, מראה שמנוני, מרקם, סימנים/כתמים. השתמש ב-unclear כשאי אפשר לראות. אסור לאבחן מחלות עור (רוזציאה, אקזמה וכו׳) ואסור להמליץ על תרופות מרשם. nextSteps: צעדי טיפוח עדינים ומתאימים לגיל. dermatologistNote: מתי לפנות לרופא/ת עור.\n${profileText(req.profile)}`,
     });
-    return analyzeResult("skinScan", await parseWith(SkinScanSchema, SYSTEM, content));
+    return analyzeResult("skinScan", await parseWith(SkinScanSchema, SYSTEM, content, "medium", { task: "skin-scan" }));
   }
   if (req.type === "skin") {
     const prompt = `בנה שגרת טיפוח עור פשוטה, לא מוגזמת ומציאותית.
@@ -120,7 +110,7 @@ export async function analyze(req: AnalyzeRequestT) {
 זמן מקסימלי ביום: ${req.minutes} דקות
 ${profileText(req.profile)}
 הנחיות: שגרת בוקר (ניקוי עדין, לחות, SPF כשיש חשיפה לשמש), שגרת ערב, שלבים שבועיים אופציונליים, שגרה אחרי אימון ושגרה לפני אירוע. לכל שלב: מטרה, איך, מתי, אזהרות, ו-duplicateOf אם מוצר קיים של המשתמש כבר מכסה את השלב. העדף שגרה עדינה ומתאימה לגיל, בלי שילובים מורכבים של חומרים פעילים ובלי טיפולי מרשם. השתמש במוצרים הקיימים כשאפשר. אל תאבחן. dermatologistNote: מתי כדאי לפנות לרופא עור.`;
-    return analyzeResult("skin", await parseWith(SkinRoutineSchema, SYSTEM, [{ type: "text", text: prompt }]));
+    return analyzeResult("skin", await parseWith(SkinRoutineSchema, SYSTEM, [{ type: "text", text: prompt }], "medium", { task: "skin-routine" }));
   }
 
   const image: Anthropic.Beta.Messages.BetaContentBlockParam = {
@@ -144,16 +134,16 @@ ${profileText(req.profile)}
       const sys = `${common}
 דרג תמונת פנים: overall, potential (פוטנציאל Glow Up: כמה שיפור נראה אפשרי בטיפוח, עור, שיער וסטייל), jawline, cheekbones, skin (מראה העור הנראה), grooming.
 presentation: פרופיל זכר: עד כמה התווים נקראים מסקוליניים בתמונה. פרופיל נקבה: עד כמה נקראים פמיניניים. אחרת null. פרופיל: ${prof?.gender || "לא צוין"}.${lang}`;
-      return analyzeResult("ratings", { scope: "face", ...(await parseWith(FaceRatingsSchema, sys, [image, text("דרג את תמונת הפנים.")])) });
+      return analyzeResult("ratings", { scope: "face", ...(await parseWith(FaceRatingsSchema, sys, [image, text("דרג את תמונת הפנים.")], "medium", { task: "ratings" })) });
     }
     if (req.scope === "hair") {
       const sys = `${common}
 דרג תמונת שיער: overall, condition (יובש, פריז, ברק), volume, styleFit (התאמת התספורת למבנה הפנים הנראה), neatness. אל תאבחן נשירה או מצבי קרקפת.${lang}`;
-      return analyzeResult("ratings", { scope: "hair", ...(await parseWith(HairRatingsSchema, sys, [image, text("דרג את תמונת השיער.")])) });
+      return analyzeResult("ratings", { scope: "hair", ...(await parseWith(HairRatingsSchema, sys, [image, text("דרג את תמונת השיער.")], "medium", { task: "ratings" })) });
     }
     const sys = `${common}
 דרג תמונת גוף מלא: overall, posture, shoulders, upperBody, core, lowerBody כפי שהם נראים בפוזה הזו. אסור להעריך אחוז שומן, מסת שריר, משקל או כוח. אל תאבחן עיוותי עמוד שדרה. הערות מעודדות והקשר לאימון ויציבה.${lang}`;
-    return analyzeResult("ratings", { scope: "body", ...(await parseWith(BodyRatingsSchema, sys, [image, text("דרג את תמונת הגוף.")])) });
+    return analyzeResult("ratings", { scope: "body", ...(await parseWith(BodyRatingsSchema, sys, [image, text("דרג את תמונת הגוף.")], "medium", { task: "ratings" })) });
   }
 
   if (req.type === "face") {
@@ -162,7 +152,7 @@ ${profileText(req.profile)}
 מרכיב משקפיים: ${req.wearsGlasses ? "כן" : "לא ידוע/לא"}
 החזר: משוב על איכות התמונה (תאורה, זווית, חדות + טיפים לצילום טוב יותר); הערכת צורת פנים כללית (עם רמת ביטחון והסבר — זו הערכה גסה בלבד); 3-5 תסרוקות מתאימות עם הסבר ומה לבקש מהספר; 2-4 המלצות לגבות; 3-5 המלצות טיפוח; משקפיים (relevant=true אם מרכיב או אם יכול להועיל כסטייל) — מסגרות מומלצות ומה להימנע; 3-4 המלצות סטייל; תוכנית פעולה של 3-5 צעדים עם זמן בדקות.
 אסור: ציונים, דירוגים, הערכת גיל/מוצא/בריאות/אישיות.`;
-    return analyzeResult("face", await parseWith(FaceAnalysisSchema, SYSTEM, [image, { type: "text", text: prompt }]));
+    return analyzeResult("face", await parseWith(FaceAnalysisSchema, SYSTEM, [image, { type: "text", text: prompt }], "medium", { task: "face-analysis" }));
   }
 
   if (req.type === "hair") {
@@ -171,14 +161,14 @@ ${profileText(req.profile)}
 ${profileText(req.profile)}
 צורת פנים ידועה (אם נמסרה): ${req.faceShape || "לא ידוע"}
 יתכנו תמונות נוספות מזוויות שונות (צד, אחור, למעלה). החזר: אורך, מרקם שנראה (חלק/גלי/מתולתל), תיאור התספורת הנוכחית, נפח, פריז ויובש נראים, והתאמת התספורת למרקם ולפנים; 3-5 תסרוקות/תספורות מומלצות (מתאימות למבנה הפנים אם ידוע) עם הסבר וניסוח מדויק לספר; פסקת "מה להגיד לספר" (מספרי מכונה, אורכים בס״מ, טקסטורה, קו עורף וכו׳); שגרת טיפוח (שלבים, תדירות, איך); 2-4 סוגי מוצרים אפשריים עם טיפ חיסכון. אל תאבחן נשירה או מצבים רפואיים — אם רלוונטי, הפנה לרופא עור.`;
-    return analyzeResult("hair", await parseWith(HairAnalysisSchema, SYSTEM, [image, ...extra, { type: "text", text: prompt }]));
+    return analyzeResult("hair", await parseWith(HairAnalysisSchema, SYSTEM, [image, ...extra, { type: "text", text: prompt }], "medium", { task: "hair-analysis" }));
   }
 
   const prompt = `נתח את ה-outfit בתמונה.
 ${profileText(req.profile)}
 אירוע/הקשר: ${req.occasion || "יומיומי"}
 החזר: רשימת פריטים וצבעים שזיהית; התאמת צבעים (מה עובד ומה לשפר); itemMatch.score 1-10 — דירוג של התאמת הפריטים זה לזה בלבד (לא של האדם, לא של הגוף); התאמת נעליים; 3-5 רעיונות שדרוג במה שכבר יש; 2-4 פריטים חדשים מומלצים עם טווח מחיר סביר; 2-3 כיווני השראה.`;
-  return analyzeResult("style", await parseWith(StyleAnalysisSchema, SYSTEM, [image, { type: "text", text: prompt }]));
+  return analyzeResult("style", await parseWith(StyleAnalysisSchema, SYSTEM, [image, { type: "text", text: prompt }], "medium", { task: "style-analysis" }));
 }
 
 function analyzeResult<T>(type: string, result: T) {
@@ -199,7 +189,7 @@ ${extraContext ? `מידע נוסף מניתוחים קודמים: ${extraContex
 - סך המשימות היומיות (daily) לא יעלה בהרבה על ${(profile as { minutesPerDay?: number })?.minutesPerDay ?? 30} דקות ביום.
 - כסה את כל התחומים: טיפוח, שיער, סטייל, כושר, יציבה, שינה, תזונה, ביטחון. תן משקל רב יותר למטרות שהמשתמש בחר.
 - מציאותי, פשוט, ללא מוצרים יקרים, ללא דיאטות.`;
-  return parseWith(PlanSchema, system, [{ type: "text", text: prompt }], "medium");
+  return parseWith(PlanSchema, system, [{ type: "text", text: prompt }], "medium", { task: "plan", tier: "deep" });
 }
 
 export async function generateDailyTasks(profile: unknown, context: string, request: string) {
@@ -209,7 +199,7 @@ ${profileText(profile)}
 מצב התקדמות: ${context}
 בקשת המשתמש: ${request || "משימות מאוזנות להיום"}
 לכל משימה: כותרת, קטגוריה, דקות, how (איך בדיוק), why (למה).`;
-  return parseWith(DailyTasksSchema, system, [{ type: "text", text: prompt }], "low");
+  return parseWith(DailyTasksSchema, system, [{ type: "text", text: prompt }], "low", { task: "daily-tasks" });
 }
 
 export function coachSystemPrompt(profile: unknown, context: string, focus?: string) {
@@ -256,7 +246,7 @@ export async function analyzeConcern(input: {
 ${profileText(input.profile)}
 ${input.image ? "צורפה תמונה. התייחסו רק למה שבאמת נראה, ואל תאבחנו." : "לא צורפה תמונה, ולכן אל תתארו מראה."}`,
   });
-  return parseWith(ConcernAnalysisSchema, CONCERN_SYSTEM + langRule(input.profile), content, "medium");
+  return parseWith(ConcernAnalysisSchema, CONCERN_SYSTEM + langRule(input.profile), content, "medium", { task: "concern" });
 }
 
 const FACE_SCAN_SYSTEM = `אתה GLOWUP AI. אתה מקבל עד 3 תמונות פנים (חזית, ושני חצאי-פרופיל) ותצפיות שחושבו מנקודות ציון (landmarks) בדפדפן.
@@ -285,7 +275,7 @@ export async function analyzeFaceScan(input: {
   add("חצי פרופיל (ראש מסובב שמאלה):", input.left);
   add("חצי פרופיל (ראש מסובב ימינה):", input.right);
   content.push({ type: "text", text: `תצפיות מנקודות ציון (הערכות יחסיות מתמונה דו-ממדית):\n${input.observations}\n${profileText(input.profile)}\nכתוב את הדוח.` });
-  return parseWith(FaceScanReportSchema, FACE_SCAN_SYSTEM + langRule(input.profile), content, "medium");
+  return parseWith(FaceScanReportSchema, FACE_SCAN_SYSTEM + langRule(input.profile), content, "medium", { task: "face-scan", tier: "deep" });
 }
 
 export async function readProductLabel(img: { mediaType: "image/jpeg" | "image/png" | "image/webp"; data: string }, profile?: unknown) {
@@ -293,7 +283,7 @@ export async function readProductLabel(img: { mediaType: "image/jpeg" | "image/p
   return parseWith(ProductLabelSchema, system, [
     { type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } },
     { type: "text", text: "קרא את התווית." },
-  ], "low");
+  ], "low", { task: "product-label" });
 }
 
 const ADVISOR_SYSTEM = `אתה GLOWUP AI, יועץ טיפוח ובשמים אישי. המשתמש מתאר מה הוא אוהב ומה הוא מחפש, ואתה נותן עצה ממוקדת ומעשית.
@@ -317,5 +307,5 @@ export async function adviseProducts(input: AdviceRequestT) {
 פריטים שכבר יש למשתמש (מה שהוא תיעד בעצמו):
 ${input.owned.length ? input.owned.map((o) => "- " + o).join("\n") : "(אין)"}
 ${profileText(input.profile)}`;
-  return parseWith(AdviceSchema, ADVISOR_SYSTEM + langRule(input.profile), [{ type: "text", text }], "medium");
+  return parseWith(AdviceSchema, ADVISOR_SYSTEM + langRule(input.profile), [{ type: "text", text }], "medium", { task: "advisor" });
 }

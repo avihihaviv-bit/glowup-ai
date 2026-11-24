@@ -18,6 +18,25 @@ User-entered body measurements (weight, measured body-fat % for adults, circumfe
 
 Product & fragrance advisor (/advisor): saved preferences per category (fragrance, deodorant, skin, hair, body, oral), free-text keyword detection, rules-based advice from a curated knowledge base plus the user's own items, AI advice ⚙️ with ANTHROPIC_API_KEY, advice history: ✅
 
+## Multi-provider AI router (src/lib/ai/router)
+| Item | Status | Notes |
+|---|---|---|
+| Providers: Anthropic (existing), Google Gemini, Groq, OpenRouter | ✅ ⚙️ | needs at least one key; see .env.example |
+| Several keys per provider, primary + backup order (AI_PROVIDERS) | ✅ | backup keys for auth failures; per-key quotas only with *_KEYS_SEPARATE_QUOTA |
+| Failover on 429 / quota / 503 / 5xx / network / timeout / unavailable model | ✅ | tested against HTTP mocks of each API |
+| Exponential backoff with jitter, Retry-After / Gemini retryDelay honored | ✅ | |
+| Auth vs rate-limit vs quota classification | ✅ | |
+| Loop protection: one visit per provider, max attempts, deadline, circuit breaker | ✅ | |
+| Capability-aware failover (vision / structured JSON / streaming) | ✅ | image requests never go to text-only models |
+| Model by complexity (fast / balanced / deep) + model discovery from provider lists | ✅ | |
+| Streaming (coach) with failover before the first token | ✅ | after the first token a failure is reported, never mixed |
+| Structured output: native schema → JSON mode → prompt, validation + one repair | ✅ | |
+| Usage/latency/tokens/quota-header tracking, structured logs, admin screen /ai-admin | ✅ | in-memory per server instance (resets on restart / per serverless instance) |
+| Real calls to Gemini/Groq/OpenRouter from this dev container | ⬜ | hosts blocked here; verify with the admin "בדיקת חיבור" button after deploying |
+| Persistent usage history (DB/KV) | ⬜ | not implemented |
+
+Tests: `npm run test:ai` (33 failover tests).
+
 ## Foundation
 | Item | Status | Notes |
 |---|---|---|

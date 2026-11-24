@@ -2,12 +2,19 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { ZodError } from "zod";
 import { AIError } from "./server";
+import { ProviderError, RouterError } from "./router";
 
 export function errorResponse(err: unknown) {
   if (err instanceof ZodError) {
     return Response.json({ error: "בקשה לא תקינה", details: err.issues.slice(0, 3) }, { status: 400 });
   }
   if (err instanceof AIError) return Response.json({ error: err.message }, { status: err.status });
+  if (err instanceof RouterError) return Response.json({ error: err.message, kind: err.kind }, { status: err.status });
+  if (err instanceof ProviderError) {
+    // Mid-stream failure after the first token (no failover possible at that point).
+    const msg = err.kind === "rate_limit" || err.kind === "quota" ? "ספק ה-AI הגיע למגבלה באמצע התשובה. נסו שוב." : err.kind === "refusal" ? "הבקשה נדחתה על ידי מודל ה-AI." : "החיבור לספק ה-AI נקטע באמצע התשובה. נסו שוב.";
+    return Response.json({ error: msg, kind: err.kind }, { status: 502 });
+  }
   if (err instanceof Anthropic.AuthenticationError)
     return Response.json({ error: "מפתח ה-API אינו תקין. בדקו את ANTHROPIC_API_KEY." }, { status: 401 });
   if (err instanceof Anthropic.RateLimitError)
@@ -28,7 +35,7 @@ export function errorResponse(err: unknown) {
 
 export function noAI() {
   return Response.json(
-    { error: "AI לא מוגדר בשרת. הגדירו ANTHROPIC_API_KEY או השתמשו במצב דמו.", demo: true },
+    { error: "AI לא מוגדר בשרת. הגדירו מפתח לאחד הספקים (GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY או ANTHROPIC_API_KEY), או השתמשו במצב דמו.", demo: true },
     { status: 503 },
   );
 }

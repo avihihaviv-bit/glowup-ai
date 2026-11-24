@@ -25,6 +25,7 @@ import {
   Smile,
   SprayCan,
   WandSparkles,
+  ServerCog,
   Waves,
   Library,
   IdCard,
@@ -92,6 +93,7 @@ export const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
       { href: "/tips", key: "nav.tips", icon: Library },
       { href: "/progress", key: "nav.progress", icon: TrendingUp },
       { href: "/settings", key: "nav.settings", icon: Settings },
+      { href: "/ai-admin", key: "nav.aiAdmin", icon: ServerCog },
     ],
   },
 ];
