@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
-import { SprayCan, Plus, Trash2, Star, Pencil, BookOpen } from "lucide-react";
+import Link from "next/link";
+import { SprayCan, Plus, Trash2, Star, Pencil, BookOpen, WandSparkles, ChevronLeft } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type { Concentration, Fragrance } from "@/lib/types";
 import { cn, dateKey, heDate, uid } from "@/lib/utils";
@@ -89,6 +90,15 @@ export default function FragrancePage() {
           />
         </div>
       </div>
+
+      <Link href="/advisor" onClick={() => useStore.getState().setAdvisorCat("fragrance")} className="flex items-center gap-3 rounded-2xl border border-accent/30 bg-gradient-to-l from-accent-soft to-white p-4 transition hover:border-accent">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-white"><WandSparkles className="size-5" /></span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">יועץ ריחות: מה מתאים לי?</span>
+          <span className="block text-sm text-muted">כותבים מה אוהבים (מתוק, רענן, עצי…) ומקבלים עצה, כולל מתוך האוסף שלך.</span>
+        </span>
+        <ChevronLeft className="size-5 shrink-0 text-accent rtl:rotate-0 ltr:rotate-180" />
+      </Link>
 
       {tab === "collection" &&
         (frs.length ? (

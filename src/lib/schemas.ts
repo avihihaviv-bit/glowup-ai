@@ -338,3 +338,37 @@ export const AnalyzeRequest = z.discriminatedUnion("type", [
   }),
 ]);
 export type AnalyzeRequestT = z.infer<typeof AnalyzeRequest>;
+
+// ---------- Product & fragrance advisor ----------
+export const AdviceSchema = z.object({
+  summary: z.string().describe("2-3 sentences: what the user is asking for, in their terms, and the recommended direction"),
+  lookFor: z.array(z.string()).describe("Notes / ingredients / label words / attributes to look for"),
+  picks: z
+    .array(
+      z.object({
+        title: z.string(),
+        kind: z.enum(["owned", "type", "example"]).describe("owned = an item from the user's own list; type = a product type or note combination; example = a real, well-known product to test"),
+        why: z.string(),
+        how: z.string().describe("How/when to use it; empty string if not relevant"),
+      }),
+    )
+    .describe("3-7 recommendations, owned items first when they fit"),
+  avoid: z.array(z.string()).describe("What to avoid given the user's preferences"),
+  general: z.array(z.string()).describe("3-5 general tips for this category"),
+  testing: z.array(z.string()).describe("How to test before buying"),
+});
+export type AdviceAI = z.infer<typeof AdviceSchema>;
+
+export const AdviceRequest = z.object({
+  category: z.enum(["fragrance", "deodorant", "skin", "hair", "body", "oral"]),
+  likes: z.array(z.string().max(40)).max(20),
+  avoid: z.array(z.string().max(40)).max(20),
+  love: z.string().max(1500),
+  intensity: z.string().max(30).optional(),
+  occasion: z.string().max(30).optional(),
+  season: z.string().max(30).optional(),
+  budget: z.string().max(30).optional(),
+  owned: z.array(z.string().max(400)).max(40),
+  profile: z.lazy(() => ProfileContext).optional(),
+});
+export type AdviceRequestT = z.infer<typeof AdviceRequest>;

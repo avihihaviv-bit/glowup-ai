@@ -16,6 +16,8 @@ Last updated after: Phase 6 (progress center: weekly report, habit heatmap, scan
 
 User-entered body measurements (weight, measured body-fat % for adults, circumferences) with trend chart: ✅. Nothing is estimated from photos and there are no weight targets.
 
+Product & fragrance advisor (/advisor): saved preferences per category (fragrance, deodorant, skin, hair, body, oral), free-text keyword detection, rules-based advice from a curated knowledge base plus the user's own items, AI advice ⚙️ with ANTHROPIC_API_KEY, advice history: ✅
+
 ## Foundation
 | Item | Status | Notes |
 |---|---|---|

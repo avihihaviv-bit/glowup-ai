@@ -4,6 +4,8 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
 import {
   ConcernAnalysisSchema,
+  AdviceSchema,
+  type AdviceRequestT,
   FaceScanReportSchema,
   SkinScanSchema,
   ProductLabelSchema,
@@ -292,4 +294,28 @@ export async function readProductLabel(img: { mediaType: "image/jpeg" | "image/p
     { type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } },
     { type: "text", text: "קרא את התווית." },
   ], "low");
+}
+
+const ADVISOR_SYSTEM = `אתה GLOWUP AI, יועץ טיפוח ובשמים אישי. המשתמש מתאר מה הוא אוהב ומה הוא מחפש, ואתה נותן עצה ממוקדת ומעשית.
+${SAFETY_RULES}
+כללים ליועץ:
+- התחל ממה שהמשתמש ביקש במילים שלו. אם העדפות סותרות (למשל מתוק מאוד אבל קליל לקיץ), הצע את הפשרה הטובה ביותר והסבר.
+- אם יש פריטים ברשימה של המשתמש שמתאימים לבקשה, המלץ עליהם קודם (kind="owned") והסבר למה ומתי.
+- kind="type": סוג מוצר, שילוב תווים או רכיבים לחפש על התווית.
+- kind="example": רק מוצרים אמיתיים ומוכרים שאתה בטוח בקיומם ובאופי שלהם. אל תמציא מוצרים, תווים או רכיבים. אם אינך בטוח, השתמש ב-type. לכל היותר 4 דוגמאות.
+- בלי מחירים, בלי חנויות ובלי קישורים. ציין שכדאי לבדוק על העור או דוגמית לפני קנייה.
+- בשמים: התחשב בעונה, באירוע ובעוצמה. המלץ על 1-3 ריסוסים בלבד. שיווק לפי מגדר לא מחייב.
+- עור, פה וגוף: בלי טענות רפואיות. עור רגיש: עדיף ללא בישום. רגישות או כאב מתמשכים: הפניה לאיש מקצוע.
+- התאם לתקציב: בתקציב חסכוני העדף סוגי מוצרים זולים ונגישים.`;
+
+export async function adviseProducts(input: AdviceRequestT) {
+  const text = `קטגוריה: ${input.category}
+מה המשתמש הכי אוהב / מחפש (במילים שלו): ${input.love || "(לא נכתב)"}
+אוהב: ${input.likes.join(", ") || "-"}
+לא אוהב / להימנע: ${input.avoid.join(", ") || "-"}
+עוצמה: ${input.intensity || "-"} · אירוע: ${input.occasion || "-"} · עונה: ${input.season || "-"} · תקציב: ${input.budget || "-"}
+פריטים שכבר יש למשתמש (מה שהוא תיעד בעצמו):
+${input.owned.length ? input.owned.map((o) => "- " + o).join("\n") : "(אין)"}
+${profileText(input.profile)}`;
+  return parseWith(AdviceSchema, ADVISOR_SYSTEM + langRule(input.profile), [{ type: "text", text }], "medium");
 }

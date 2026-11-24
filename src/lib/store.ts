@@ -27,6 +27,8 @@ import type {
   Workout,
 } from "./types";
 import { addDays, dateKey } from "./utils";
+import type { AdvisorPref, AdviceEntry } from "./advisor";
+import type { AdvisorCat } from "@/data/advisor";
 import { tasksForDate, XP } from "./plan";
 import { clearImages, deleteImage } from "./images";
 
@@ -68,6 +70,9 @@ interface State {
   outfits: Outfit[];
   barberBriefs: BarberBrief[];
   scannedProducts: ScannedProduct[];
+  advisorCat: AdvisorCat;
+  advisorPrefs: Partial<Record<AdvisorCat, AdvisorPref>>;
+  adviceHistory: AdviceEntry[];
 }
 
 export interface BodyMetric {
@@ -99,6 +104,10 @@ interface Actions {
   removeBarberBrief: (id: string) => void;
   addScannedProduct: (p: ScannedProduct) => void;
   removeScannedProduct: (id: string) => void;
+  setAdvisorCat: (c: AdvisorCat) => void;
+  setAdvisorPref: (c: AdvisorCat, p: AdvisorPref) => void;
+  addAdvice: (a: AdviceEntry) => void;
+  removeAdvice: (id: string) => void;
   toggleTipFavorite: (id: string) => void;
   toggleTipHidden: (id: string) => void;
   toggleTipDone: (id: string, date?: string) => void;
@@ -190,6 +199,9 @@ const initial: State = {
   outfits: [],
   barberBriefs: [],
   scannedProducts: [],
+  advisorCat: "fragrance",
+  advisorPrefs: {},
+  adviceHistory: [],
 };
 
 export const useStore = create<State & Actions>()(
@@ -242,6 +254,10 @@ export const useStore = create<State & Actions>()(
         set((s) => ({ fragrances: s.fragrances.some((x) => x.id === f.id) ? s.fragrances.map((x) => (x.id === f.id ? f : x)) : [f, ...s.fragrances] })),
       removeFragrance: (id) =>
         set((s) => ({ fragrances: s.fragrances.filter((x) => x.id !== id), fragranceLog: s.fragranceLog.filter((l) => l.fragranceId !== id) })),
+      setAdvisorCat: (advisorCat) => set({ advisorCat }),
+      setAdvisorPref: (c, p) => set((s) => ({ advisorPrefs: { ...s.advisorPrefs, [c]: p } })),
+      addAdvice: (a) => set((s) => ({ adviceHistory: [a, ...s.adviceHistory].slice(0, 30) })),
+      removeAdvice: (id) => set((s) => ({ adviceHistory: s.adviceHistory.filter((x) => x.id !== id) })),
       addFragranceLog: (l) => set((s) => ({ fragranceLog: [l, ...s.fragranceLog].slice(0, 500) })),
       removeFragranceLog: (id) => set((s) => ({ fragranceLog: s.fragranceLog.filter((x) => x.id !== id) })),
       addScan: (scan) => set((s) => ({ scans: [scan, ...s.scans].slice(0, 40) })),
