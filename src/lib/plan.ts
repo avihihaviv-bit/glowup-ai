@@ -282,3 +282,16 @@ export function importanceOf(t: PlanTask): "high" | "medium" | "low" {
   if (t.frequency === "daily" || t.frequency === "once") return "medium";
   return "low";
 }
+
+/** Add a task to an existing plan and schedule it from `fromKey` to the end of the plan by its frequency. */
+export function addTaskToPlan(plan: Plan, task: PlanTask, fromKey: string): Plan {
+  if (plan.tasks.some((t) => t.title === task.title)) return plan;
+  const start = (planDay(plan, fromKey) ?? 1) - 1;
+  const days = plan.days.map((day, i) => {
+    const off = i - start;
+    if (off < 0) return day;
+    const on = task.frequency === "daily" || (task.frequency === "3x_week" && [0, 2, 4].includes(off % 7)) || (task.frequency === "weekly" && off % 7 === 0) || (task.frequency === "once" && off === 0);
+    return on ? { ...day, taskIds: [...day.taskIds, task.id] } : day;
+  });
+  return { ...plan, tasks: [...plan.tasks, task], days };
+}

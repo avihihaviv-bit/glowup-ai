@@ -91,6 +91,7 @@ export const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     key: "nav.group.track",
     items: [
       { href: "/tips", key: "nav.tips", icon: Library },
+      { href: "/trends", key: "nav.trends", icon: Flame },
       { href: "/progress", key: "nav.progress", icon: TrendingUp },
       { href: "/settings", key: "nav.settings", icon: Settings },
       { href: "/ai-admin", key: "nav.aiAdmin", icon: ServerCog },
