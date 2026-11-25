@@ -182,7 +182,7 @@ export default function Dashboard() {
               <Sparkles className="size-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-medium text-accent">ההמלצה החכמה להיום</div>
+              <div className="inline-flex min-h-9 items-center text-xs font-medium text-accent">ההמלצה החכמה להיום</div>
               <div className="font-semibold">{rec.kind === "concern" ? rec.title : t(`prio.${rec.key}.title`)}</div>
               <p className="truncate text-sm text-muted">{t(rec.kind === "concern" ? "prio.concern.do" : `prio.${rec.key}.do`)}</p>
             </div>
@@ -196,7 +196,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-2">
           <SectionTitle
             action={
-              <Link href="/plan" className="text-xs font-medium text-accent">
+              <Link href="/plan" className="inline-flex min-h-9 items-center text-xs font-medium text-accent">
                 כל התוכנית
               </Link>
             }
@@ -299,7 +299,7 @@ function RoutineWidget() {
     <Card>
       <SectionTitle
         action={
-          <Link href="/plan#routines" className="text-xs font-medium text-accent">
+          <Link href="/plan#routines" className="inline-flex min-h-9 items-center text-xs font-medium text-accent">
             הכל
           </Link>
         }
@@ -357,7 +357,7 @@ function ProductsWidget() {
     <Card>
       <SectionTitle
         action={
-          <Link href="/skin" className="text-xs font-medium text-accent">
+          <Link href="/skin" className="inline-flex min-h-9 items-center text-xs font-medium text-accent">
             ניהול
           </Link>
         }

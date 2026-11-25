@@ -191,7 +191,7 @@ function AIBadge() {
       <span className="size-1.5 rounded-full bg-green" /> {t("common.aiOn")}
     </span>
   ) : (
-    <Link href="/settings" className="inline-flex items-center gap-1 rounded-full bg-warn-bg px-2 py-0.5 text-[11px] font-medium text-warn">
+    <Link href="/settings" className="inline-flex min-h-8 items-center gap-1 rounded-full bg-warn-bg px-2.5 py-1 text-[11px] font-medium text-warn">
       <FlaskConical className="size-3" /> {t("common.demo")}
     </Link>
   );

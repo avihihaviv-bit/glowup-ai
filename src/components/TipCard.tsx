@@ -70,7 +70,7 @@ export function TipCard({ tip }: { tip: Tip }) {
         </p>
       )}
       {src && (
-        <a href={src.url} target="_blank" rel="noopener noreferrer" dir="ltr" className="mt-2 inline-flex w-fit items-center gap-1 text-[11px] text-accent hover:underline">
+        <a href={src.url} target="_blank" rel="noopener noreferrer" dir="ltr" className="mt-1 inline-flex min-h-9 w-fit items-center gap-1 text-[11px] text-accent hover:underline">
           {src.org} · {src.title} <ExternalLink className="size-3" />
         </a>
       )}

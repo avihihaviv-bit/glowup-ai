@@ -35,7 +35,7 @@ export type Budget = "low" | "mid" | "any";
 
 export const SEASON_LABEL: Record<Season, string> = { spring: "אביב", summer: "קיץ", autumn: "סתיו", winter: "חורף" };
 export const OCCASION_LABEL: Record<Occasion, string> = { daily: "יומיומי", work: "עבודה / לימודים", evening: "ערב", date: "דייט", event: "אירוע", sport: "ספורט" };
-export const INTENSITY_LABEL: Record<Intensity, string> = { soft: "עדין וקרוב לעור", medium: "בינוני", bold: "בולט" };
+export const INTENSITY_LABEL: Record<Intensity, string> = { soft: "עדין", medium: "בינוני", bold: "בולט" };
 export const BUDGET_LABEL: Record<Budget, string> = { low: "חסכוני", mid: "בינוני", any: "לא משנה" };
 
 export interface CategoryDef {

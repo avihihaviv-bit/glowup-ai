@@ -71,7 +71,7 @@ export default function PlanPage() {
         <div className="mt-4 grid gap-2 sm:grid-cols-4">
           {plan.weeks.map((w) => (
             <div key={w.week} className={cn("rounded-xl border p-3 text-sm", w.week === week ? "border-accent bg-accent-soft" : "border-line bg-surface-2")}>
-              <div className="text-xs font-medium text-accent">שבוע {w.week}</div>
+              <div className="inline-flex min-h-9 items-center text-xs font-medium text-accent">שבוע {w.week}</div>
               <div className="mt-1 text-[13px] leading-snug">{w.focus}</div>
             </div>
           ))}

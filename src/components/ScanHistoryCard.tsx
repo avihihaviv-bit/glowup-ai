@@ -10,7 +10,7 @@ export function ScanHistoryCard() {
   const scans = useStore((s) => s.scans);
   return (
     <Card>
-      <SectionTitle action={<Link href="/face" className="text-xs font-medium text-accent">לסריקות</Link>}>
+      <SectionTitle action={<Link href="/face" className="inline-flex min-h-9 items-center text-xs font-medium text-accent">לסריקות</Link>}>
         <span className="flex items-center gap-2"><ScanFace className="size-4 text-accent" /> היסטוריית סריקות</span>
       </SectionTitle>
       {scans.length ? (

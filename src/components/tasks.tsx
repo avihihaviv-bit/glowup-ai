@@ -20,7 +20,7 @@ export function TaskItem({ task, date = dateKey(), compact }: { task: PlanTask; 
           onClick={() => toggle(task.id, date)}
           aria-label={done ? "סמן כלא בוצע" : "סמן כבוצע"}
           className={cn(
-            "grid size-7 shrink-0 place-items-center rounded-lg border-2 transition",
+            "grid size-8 shrink-0 place-items-center rounded-lg border-2 transition",
             done ? "border-green bg-green text-white" : "border-line-strong hover:border-accent",
           )}
         >
@@ -53,7 +53,7 @@ export function TaskItem({ task, date = dateKey(), compact }: { task: PlanTask; 
           </div>
         </button>
         {!compact && (
-          <button onClick={() => setOpen((o) => !o)} className="text-dim hover:text-fg" aria-label="פרטים">
+          <button onClick={() => setOpen((o) => !o)} className="-m-2 grid size-10 place-items-center text-dim hover:text-fg" aria-label="פרטים">
             <ChevronDown className={cn("size-4 transition", open && "rotate-180")} />
           </button>
         )}

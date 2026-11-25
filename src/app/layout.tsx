@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: "GLOWUP AI — המאמן האישי שלך",
   description: "מאמן אישי מבוסס AI לטיפוח, שיער, סטייל, יציבה וכושר. תוכנית 30 יום מותאמת אישית.",
   applicationName: "GLOWUP AI",
+  // iPhone "Add to Home Screen": app name under the icon, full-screen launch.
+  appleWebApp: { capable: true, title: "GLOWUP", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {

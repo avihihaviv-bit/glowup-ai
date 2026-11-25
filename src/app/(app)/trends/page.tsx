@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { Flame, SquarePlay, Music2, Plus, Check, AlertTriangle, ExternalLink, ShoppingBag, Info } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { KIND_LABEL, TRENDS, VERDICT, VIDEOS, type Platform, type TrendItem, type TrendKind, type Verdict } from "@/data/trends";
+import { BASIS_LABEL, KIND_LABEL, TRENDS, VERDICT, VIDEOS, type Platform, type TrendItem, type TrendKind, type Verdict } from "@/data/trends";
 import { cn, dateKey, uid } from "@/lib/utils";
 import { addTaskToPlan, planDay } from "@/lib/plan";
 import { Badge, Button, Card, Chip, PageHeader, SectionTitle } from "@/components/ui";
@@ -44,23 +44,23 @@ export default function TrendsPage() {
       <Card className="flex items-start gap-3 p-4 text-sm text-muted">
         <Info className="mt-0.5 size-5 shrink-0 text-accent" />
         <p>
-          המידע על כל סרטון מבוסס על הכותרת, התיאור או הכיתוב שלו, ולא על צפייה מלאה בסרטון. כל עצה קיבלה בדיקה מול מקורות אמינים ודרך בטוחה לעשות אותה. מה שלא מוכח מסומן ככזה, ומה שעלול להזיק מסומן באזהרה.
+          בסרטוני TikTok העצות נלקחו מהכתוביות של הסרטון עצמו, כלומר ממה שנאמר בו. ב-YouTube לא הייתה גישה לתוכן הסרטון, אז מופיע רק מה שכתוב בכותרת ובתיאור, ומסומן כך. כל עצה קיבלה בדיקה מול מקורות אמינים ודרך בטוחה לעשות אותה.
         </p>
       </Card>
 
       <div className="space-y-2">
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
           <Chip active={platform === "all"} onClick={() => setPlatform("all")}>הכל</Chip>
           <Chip active={platform === "youtube"} onClick={() => setPlatform("youtube")}>YouTube</Chip>
           <Chip active={platform === "tiktok"} onClick={() => setPlatform("tiktok")}>TikTok</Chip>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
           <Chip active={verdict === "all"} onClick={() => setVerdict("all")}>כל הבדיקות</Chip>
           {(Object.keys(VERDICT) as Verdict[]).map((v) => (
             <Chip key={v} active={verdict === v} onClick={() => setVerdict(v)}>{VERDICT[v].label}</Chip>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
           <Chip active={kind === "all"} onClick={() => setKind("all")}>הכל</Chip>
           {(Object.keys(KIND_LABEL) as TrendKind[]).map((k) => (
             <Chip key={k} active={kind === k} onClick={() => setKind(k)}>{KIND_LABEL[k]}</Chip>
@@ -89,9 +89,9 @@ export default function TrendsPage() {
                 {t.videos.map((id) => {
                   const v = VIDEO_BY_ID[id];
                   return (
-                    <a key={id} href={v.url} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full items-center gap-1 rounded-full border border-line bg-white px-2.5 py-1 text-xs text-muted hover:border-accent" dir="ltr">
+                    <a key={id} href={v.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs text-muted hover:border-accent" dir="ltr">
                       <PlatformIcon p={v.platform} className="size-3.5 shrink-0" />
-                      <span className="truncate">{v.creator ?? v.title}</span>
+                      <span className="truncate">{v.creator}</span>
                     </a>
                   );
                 })}
@@ -141,11 +141,14 @@ export default function TrendsPage() {
             <li key={v.id} className="flex items-start gap-3 py-3">
               <PlatformIcon p={v.platform} className="mt-0.5 size-5 shrink-0" />
               <div className="min-w-0 flex-1">
-                <a href={v.url} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full items-center gap-1 font-semibold hover:text-accent" dir="ltr">
+                <a href={v.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 max-w-full items-center gap-1 font-semibold hover:text-accent" dir="ltr">
                   <span className="truncate">{v.title}</span>
                   <ExternalLink className="size-3.5 shrink-0" />
                 </a>
-                {v.creator && <div className="text-xs text-dim" dir="ltr">{v.creator}</div>}
+                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-dim">
+                  <span dir="ltr">{v.creator}</span>
+                  <Badge tone={v.basis === "transcript" ? "green" : "default"}>{BASIS_LABEL[v.basis]}</Badge>
+                </div>
                 <p className="mt-0.5 text-sm text-muted">{v.covers}</p>
               </div>
             </li>

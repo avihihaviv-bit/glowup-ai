@@ -251,14 +251,14 @@ export function Select({ className, children, ...rest }: React.SelectHTMLAttribu
 
 export function Segmented<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
   return (
-    <div className="inline-flex w-full rounded-xl border border-line bg-surface-2 p-1 sm:w-auto">
+    <div className="inline-flex w-full max-w-full rounded-xl border border-line bg-surface-2 p-1 sm:w-auto">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
           className={cn(
-            "relative min-h-10 flex-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition sm:min-h-0 sm:flex-none",
+            "relative min-h-10 min-w-0 flex-1 rounded-lg px-2 py-1.5 text-center text-sm leading-tight transition sm:min-h-0 sm:flex-none sm:whitespace-nowrap sm:px-3",
             value === o.value ? "text-fg" : "text-muted hover:text-fg",
           )}
         >
