@@ -9,6 +9,7 @@ import { useT, useLang } from "@/lib/i18n";
 import type { Gender, Goal } from "@/lib/types";
 import { Badge, Button, Card, Chip, Field, Input, Modal, PageHeader, SectionTitle } from "@/components/ui";
 import { Avatar } from "@/components/StoredImage";
+import { ServerCheck } from "@/components/ServerCheck";
 import { ImageUploader } from "@/components/ImageUploader";
 
 export default function SettingsPage() {
@@ -167,12 +168,15 @@ export default function SettingsPage() {
               <p className="text-sm text-muted">
                 ה-AI מחובר בשרת (מודל: <code dir="ltr">{ai.model}</code>). המפתח שמור בשרת בלבד ואינו נחשף לדפדפן.
               </p>
+            ) : null}
+            {ai.aiEnabled ? (
+              <ServerCheck />
             ) : (
               <div className="space-y-2 text-sm text-muted">
                 <p>האפליקציה פועלת במצב דמו: כל התכונות עובדות, אבל התוצאות מבוססות על מאגר ידע וכללים — לא על AI, ולא על ניתוח התמונה. כל תוצאה מסומנת בבירור.</p>
-                <p>להפעלת AI אמיתי — הוסיפו לקובץ <code dir="ltr">.env.local</code> (או ב-Vercel → Environment Variables):</p>
-                <pre dir="ltr" className="overflow-x-auto rounded-lg bg-surface-2 p-3 text-xs text-fg">ANTHROPIC_API_KEY=sk-ant-...</pre>
-                <p>ואז הפעילו מחדש את השרת.</p>
+                <p>להפעלת AI: ב-Vercel ← הפרויקט ← Settings ← Environments ← Production ← Environment Variables, מוסיפים מפתח לאחד הספקים, ואז Redeploy:</p>
+                <pre dir="ltr" className="overflow-x-auto rounded-lg bg-surface-2 p-3 text-xs text-fg">GEMINI_API_KEY=...{"\n"}GROQ_API_KEY=...{"\n"}AI_PROVIDERS=gemini,groq</pre>
+                <ServerCheck />
               </div>
             )}
           </Card>
