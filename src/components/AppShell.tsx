@@ -1,4 +1,5 @@
 "use client";
+import { UpdateBanner } from "./UpdateBanner";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -136,6 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="glow-bg min-h-dvh">
       <Sidebar path={path} />
+      <UpdateBanner />
       <main className={cn("transition-[padding] duration-300", collapsed ? "lg:ps-[88px]" : "lg:ps-72")}>
         <TopBar />
         <motion.div

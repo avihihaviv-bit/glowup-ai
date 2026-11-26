@@ -10,6 +10,7 @@ import type { Gender, Goal } from "@/lib/types";
 import { Badge, Button, Card, Chip, Field, Input, Modal, PageHeader, SectionTitle } from "@/components/ui";
 import { Avatar } from "@/components/StoredImage";
 import { ServerCheck } from "@/components/ServerCheck";
+import { UpdateCard } from "@/components/UpdateCard";
 import { ImageUploader } from "@/components/ImageUploader";
 
 export default function SettingsPage() {
@@ -180,6 +181,8 @@ export default function SettingsPage() {
               </div>
             )}
           </Card>
+
+          <UpdateCard />
 
           <Card className="space-y-3">
             <SectionTitle>
