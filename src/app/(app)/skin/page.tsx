@@ -89,7 +89,7 @@ function SkinRoutineView() {
       </div>
 
       {shown ? (
-        <SkinResult r={shown.result as SkinRoutine} source={shown.source} />
+        <SkinResult r={shown.result as SkinRoutine} source={shown.source} fallback={shown.fallback} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-5">
           <Card className="space-y-5 lg:col-span-3">

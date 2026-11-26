@@ -78,6 +78,7 @@ export function loadConfig(env: Env = process.env): RouterConfig {
       visionCapable: (m) => list(env.GROQ_MODELS_VISION).includes(m) || /qwen3\.\d+-27b|llama-4|vision|vl\b/i.test(m),
       dailyRequestLimit: num(env.GROQ_DAILY_REQUEST_LIMIT, 0) || undefined,
       maxImages: 5,
+      extra: { maxTokens: env.GROQ_MAX_TOKENS ?? "" },
     },
     {
       id: "openrouter",
@@ -98,6 +99,7 @@ export function loadConfig(env: Env = process.env): RouterConfig {
         // Privacy: only route to OpenRouter endpoints that don't store or train on prompts (set "allow" to opt out).
         dataCollection: env.OPENROUTER_DATA_COLLECTION === "allow" ? "allow" : "deny",
         appUrl: env.OPENROUTER_APP_URL || "",
+        maxTokens: env.OPENROUTER_MAX_TOKENS ?? "",
       },
     },
   ];

@@ -168,6 +168,8 @@ export interface AnalysisRecord {
   date: string;
   source: "ai" | "demo";
   imageId?: string;
+  /** Set when AI was configured but failed, so a rules-based result was shown instead. */
+  fallback?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result: any;
 }

@@ -60,7 +60,7 @@ export function parseRetryAfter(headers: Headers | Record<string, string | undef
 const QUOTA_RE = /quota|per.?day|daily|per.?month|insufficient.?(credits|balance|funds)|credit|billing|exceeded your current|RPD|TPD|requests per day|tokens per day/i;
 const MODEL_RE = /model.{0,40}(not.?found|does not exist|decommissioned|deprecated|not supported|unavailable|is not available|no endpoints)|unknown model|invalid model|model_not_found|model_decommissioned|No endpoints found/i;
 const AUTH_RE = /api.?key.{0,20}(not valid|invalid|expired|revoked)|API_KEY_INVALID|invalid_api_key|unauthori[sz]ed|authentication/i;
-const TOO_LARGE_RE = /too large|request entity|exceeds.{0,30}(limit|maximum)|context.?length|maximum context|too many images|image.{0,20}(size|too)/i;
+const TOO_LARGE_RE = /too large|tokens per minute \(TPM\): Limit|request entity|exceeds.{0,30}(limit|maximum)|context.?length|maximum context|too many images|image.{0,20}(size|too)/i;
 
 /** Map an HTTP failure to an ErrorKind. Body is used only for classification, never logged in full. */
 export function classifyHttp(status: number, body: string, headers?: Headers): ProviderError {

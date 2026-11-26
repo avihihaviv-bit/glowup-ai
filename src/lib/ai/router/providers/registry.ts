@@ -15,14 +15,16 @@ export const ADAPTERS: Record<string, Factory> = {
   anthropic: (c) => anthropicAdapter(c.baseUrl),
   gemini: (c) => geminiAdapter(c.baseUrl),
   groq: (c) =>
-    openAICompatAdapter({ id: "groq", label: c.label, baseUrl: c.baseUrl, maxTokensField: "max_completion_tokens", maxOutputTokens: 16000 }),
+    // Groq's free plan allows ~8k tokens per minute and counts the requested completion size,
+    // so a large max_completion_tokens gets every request rejected. GROQ_MAX_TOKENS overrides.
+    openAICompatAdapter({ id: "groq", label: c.label, baseUrl: c.baseUrl, maxTokensField: "max_completion_tokens", maxOutputTokens: Number(c.extra?.maxTokens) || 4500 }),
   openrouter: (c) =>
     openAICompatAdapter({
       id: "openrouter",
       label: c.label,
       baseUrl: c.baseUrl,
       maxTokensField: "max_tokens",
-      maxOutputTokens: 16000,
+      maxOutputTokens: Number(c.extra?.maxTokens) || 12000,
       richModelList: true,
       streamUsageOption: true,
       extraHeaders: { "X-Title": "GLOWUP AI", ...(c.extra?.appUrl ? { "HTTP-Referer": c.extra.appUrl } : {}) },

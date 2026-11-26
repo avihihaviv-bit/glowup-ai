@@ -3,7 +3,7 @@ import type { Concern } from "./types";
 import type { ConcernAnalysisAI } from "./schemas";
 import { CATEGORY_GUIDE } from "./concernsKnowledge";
 import { blobToBase64, getImage } from "./images";
-import { fetchStatus, postJSON, profileContext } from "./api";
+import { ApiError, fetchStatus, postJSON, profileContext } from "./api";
 import { useStore } from "./store";
 import { dateKey } from "./utils";
 
@@ -14,16 +14,22 @@ export async function analyzeConcernById(id: string, opts: { sendImage?: boolean
   if (!concern) return;
   const { aiEnabled } = await fetchStatus();
 
-  if (!aiEnabled) {
+  const demo = (reason?: string) => {
     const guide = CATEGORY_GUIDE[concern.category] ?? CATEGORY_GUIDE.other;
     const data: ConcernAnalysisAI = {
-      understanding: concern.description
-        ? `כתבת: "${concern.description.slice(0, 200)}". במצב דמו המערכת לא מבינה את הטקסט, והתוכן שלהלן הוא הכוונה כללית לקטגוריה.`
-        : `"${concern.title}": הכוונה כללית לקטגוריה (מצב דמו).`,
+      understanding: reason
+        ? `ה-AI לא היה זמין כרגע (${reason}), אז זו הכוונה כללית לקטגוריה. אפשר לנתח שוב בעוד כמה דקות.`
+        : concern.description
+          ? `כתבת: "${concern.description.slice(0, 200)}". במצב דמו המערכת לא מבינה את הטקסט, והתוכן שלהלן הוא הכוונה כללית לקטגוריה.`
+          : `"${concern.title}": הכוונה כללית לקטגוריה (מצב דמו).`,
       supportiveNote: "הצעד הראשון כבר נעשה: שמת לב למה שחשוב לך.",
       ...guide,
     };
     useStore.getState().updateConcern(id, { analysis: { source: "demo", date: dateKey(), data } });
+  };
+
+  if (!aiEnabled) {
+    demo();
     return;
   }
 
@@ -32,14 +38,20 @@ export async function analyzeConcernById(id: string, opts: { sendImage?: boolean
     const blob = await getImage(concern.imageId);
     if (blob) image = { mediaType: "image/jpeg", data: await blobToBase64(blob) };
   }
-  const res = await postJSON<{ analysis: ConcernAnalysisAI }>("/api/concerns", {
-    profile: profileContext(s.profile),
-    title: concern.title,
-    description: concern.description,
-    category: concern.category,
-    image,
-  });
-  useStore.getState().updateConcern(id, { analysis: { source: "ai", date: dateKey(), data: res.analysis } });
+  try {
+    const res = await postJSON<{ analysis: ConcernAnalysisAI }>("/api/concerns", {
+      profile: profileContext(s.profile),
+      title: concern.title,
+      description: concern.description,
+      category: concern.category,
+      image,
+    });
+    useStore.getState().updateConcern(id, { analysis: { source: "ai", date: dateKey(), data: res.analysis } });
+  } catch (e) {
+    const status = e instanceof ApiError ? e.status : 0;
+    if ([400, 403, 422].includes(status)) throw e;
+    demo((e as Error).message);
+  }
 }
 
 export function newConcern(partial: Pick<Concern, "title" | "description" | "category"> & { imageId?: string }, id: string): Concern {

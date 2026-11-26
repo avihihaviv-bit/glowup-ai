@@ -229,13 +229,21 @@ function TasksModal({ open, onClose, aiEnabled }: { open: boolean; onClose: () =
     setLoading(true);
     setError(null);
     try {
+      let aiFailed: string | null = null;
       if (aiEnabled) {
-        const res = await postJSON<DailyTasksAI>("/api/tasks", { profile: profileContext(profile), context: progressContext(), request });
-        setProposal({
-          source: "ai",
-          tasks: res.tasks.map((t) => ({ ...t, id: uid("c"), frequency: "once", startWeek: 1, custom: true, minutes: Math.round(t.minutes) })),
-        });
-      } else {
+        try {
+          const res = await postJSON<DailyTasksAI>("/api/tasks", { profile: profileContext(profile), context: progressContext(), request });
+          setProposal({
+            source: "ai",
+            tasks: res.tasks.map((t) => ({ ...t, id: uid("c"), frequency: "once", startWeek: 1, custom: true, minutes: Math.round(t.minutes) })),
+          });
+          return;
+        } catch (e) {
+          aiFailed = (e as Error).message;
+        }
+      }
+      {
+        if (aiFailed) setError(`ה-AI לא היה זמין (${aiFailed}), אז אלה משימות מהספרייה.`);
         const titles = new Set(today.map((t) => t.title));
         const pool = TASK_LIBRARY.filter((t) => !titles.has(t.title) && t.minutes > 0 && t.minutes <= 25);
         const picks = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);

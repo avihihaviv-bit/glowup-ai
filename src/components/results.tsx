@@ -140,11 +140,11 @@ function Suggestions({ items, title }: { items: { name: string; why: string; how
   );
 }
 
-export function FaceResult({ r, source }: { r: FaceAnalysis; source: "ai" | "demo" }) {
+export function FaceResult({ r, source, fallback }: { r: FaceAnalysis; source: "ai" | "demo"; fallback?: string }) {
   const info = FACE_SHAPE_INFO[r.faceShape.shape as FaceShape];
   return (
     <motion.div {...fade} className="space-y-4">
-      <SourceNotice source={source} />
+      <SourceNotice source={source} fallback={fallback} />
       <PhotoFeedbackCard photo={r.photo} />
       <Card>
         <SectionTitle action={<Badge tone="default">ביטחון: {{ low: "נמוך", medium: "בינוני", high: "גבוה" }[r.faceShape.confidence]}</Badge>}>
@@ -215,10 +215,10 @@ function ActionPlan({ items }: { items: { title: string; how: string; minutes: n
   );
 }
 
-export function HairResult({ r, source }: { r: HairAnalysis; source: "ai" | "demo" }) {
+export function HairResult({ r, source, fallback }: { r: HairAnalysis; source: "ai" | "demo"; fallback?: string }) {
   return (
     <motion.div {...fade} className="space-y-4">
-      <SourceNotice source={source} />
+      <SourceNotice source={source} fallback={fallback} />
       <PhotoFeedbackCard photo={r.photo} />
       <Card>
         <SectionTitle>השיער שלך</SectionTitle>
@@ -276,11 +276,11 @@ export function HairResult({ r, source }: { r: HairAnalysis; source: "ai" | "dem
   );
 }
 
-export function StyleResult({ r, source }: { r: StyleAnalysis; source: "ai" | "demo" }) {
+export function StyleResult({ r, source, fallback }: { r: StyleAnalysis; source: "ai" | "demo"; fallback?: string }) {
   const score = Math.max(1, Math.min(10, Math.round(r.itemMatch.score)));
   return (
     <motion.div {...fade} className="space-y-4">
-      <SourceNotice source={source} />
+      <SourceNotice source={source} fallback={fallback} />
       <PhotoFeedbackCard photo={r.photo} />
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="flex flex-col items-center justify-center text-center">
@@ -366,7 +366,7 @@ export function StyleResult({ r, source }: { r: StyleAnalysis; source: "ai" | "d
   );
 }
 
-export function SkinResult({ r, source }: { r: SkinRoutine; source: "ai" | "demo" }) {
+export function SkinResult({ r, source, fallback }: { r: SkinRoutine; source: "ai" | "demo"; fallback?: string }) {
   const block = (title: string, items: SkinRoutine["morning"] | undefined) =>
     items && items.length > 0 ? (
       <Card>
@@ -392,7 +392,7 @@ export function SkinResult({ r, source }: { r: SkinRoutine; source: "ai" | "demo
     ) : null;
   return (
     <motion.div {...fade} className="space-y-4">
-      <SourceNotice source={source} />
+      <SourceNotice source={source} fallback={fallback} />
       <Card>
         <p className="text-sm leading-relaxed">{r.summary}</p>
       </Card>

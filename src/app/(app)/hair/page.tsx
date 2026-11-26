@@ -73,7 +73,7 @@ function Analysis() {
     return (
       <div className="space-y-4">
         <CloseResult onClick={() => setRecord(null)} />
-        <HairResult r={record.result as HairAnalysis} source={record.source} />
+        <HairResult r={record.result as HairAnalysis} source={record.source} fallback={record.fallback} />
         <AnalysisHistory type="hair" onOpen={setRecord} />
       </div>
     );

@@ -271,21 +271,27 @@ export function Segmented<T extends string>({ value, onChange, options }: { valu
 }
 
 /** Clear, honest labeling of where a result came from. */
-export function SourceNotice({ source, className }: { source: "ai" | "demo"; className?: string }) {
+export function SourceNotice({ source, className, fallback }: { source: "ai" | "demo"; className?: string; fallback?: string }) {
   if (source === "ai") {
     return (
       <div className={cn("flex items-start gap-2 rounded-xl border border-accent/25 bg-accent-soft px-3.5 py-2.5 text-sm text-accent", className)}>
         <Sparkles className="mt-0.5 size-4 shrink-0" />
-        <span>נוצר על ידי AI על סמך המידע שסיפקת. אלו המלצות כלליות לטיפוח וסטייל — לא ייעוץ רפואי.</span>
+        <span>נוצר על ידי AI על סמך המידע שסיפקת. אלו המלצות כלליות לטיפוח וסטייל, לא ייעוץ רפואי.</span>
       </div>
     );
   }
   return (
     <div className={cn("flex items-start gap-2 rounded-xl border border-warn/30 bg-warn/10 px-3.5 py-2.5 text-sm text-warn", className)}>
       <FlaskConical className="mt-0.5 size-4 shrink-0" />
-      <span>
-        <b>מצב דמו</b> — התוצאה <u>לא</u> נוצרה על ידי AI ואינה מבוססת על ניתוח התמונה שלך. היא מבוססת על הבחירות שלך ועל מאגר ידע כללי. איכות התמונה (תאורה/חדות) נמדדת מקומית בדפדפן. להפעלת AI אמיתי הגדירו <code dir="ltr">ANTHROPIC_API_KEY</code>.
-      </span>
+      {fallback ? (
+        <span>
+          <b>ה-AI לא היה זמין כרגע</b> ({fallback}), אז מוצגת תוצאה מבוססת כללים: היא מבוססת על הבחירות שלך ועל מאגר ידע, ולא על ניתוח התמונה. אפשר לנסות שוב בעוד כמה דקות.
+        </span>
+      ) : (
+        <span>
+          <b>מצב דמו</b>: התוצאה <u>לא</u> נוצרה על ידי AI ואינה מבוססת על ניתוח התמונה שלך. היא מבוססת על הבחירות שלך ועל מאגר ידע כללי. איכות התמונה (תאורה וחדות) נמדדת מקומית בדפדפן.
+        </span>
+      )}
     </div>
   );
 }

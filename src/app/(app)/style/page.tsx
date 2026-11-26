@@ -32,7 +32,7 @@ export default function StylePage() {
         actions={record && <CloseResult onClick={() => setRecord(null)} />}
       />
       {record ? (
-        <StyleResult r={record.result as StyleAnalysis} source={record.source} />
+        <StyleResult r={record.result as StyleAnalysis} source={record.source} fallback={record.fallback} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-5">
           <Card className="lg:col-span-2">

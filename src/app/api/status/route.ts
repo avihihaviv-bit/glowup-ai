@@ -19,6 +19,10 @@ export async function GET() {
       imageGen: Boolean(process.env.OPENAI_API_KEY),
       // Diagnostics: only WHICH providers have a key (never the key), the provider order and the deployed commit.
       keysSeen: router.cfg.providers.filter((p) => p.keys.length > 0).map((p) => p.id),
+      health: router
+        .snapshot()
+        .providers.filter((p) => p.status !== "not_configured")
+        .map((p) => ({ id: p.id, status: p.status, lastError: p.lastError ? { kind: p.lastError.kind, status: p.lastError.status ?? null } : null, success: p.success, requests: p.requests })),
       order: router.cfg.order,
       deployment: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
       environment: process.env.VERCEL_ENV ?? null,

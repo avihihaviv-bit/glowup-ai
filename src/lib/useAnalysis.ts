@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { AnalysisRecord, AnalysisType } from "./types";
 import { blobToBase64, saveImage } from "./images";
-import { fetchStatus, postJSON, profileContext } from "./api";
+import { ApiError, fetchStatus, postJSON, profileContext } from "./api";
 import { useStore } from "./store";
 import { measureImageQuality, type ImageQuality } from "./demo";
 import { uid, dateKey } from "./utils";
@@ -29,6 +29,7 @@ export function useAnalysis(type: AnalysisType) {
       const { aiEnabled } = await fetchStatus();
       let result: unknown;
       let source: "ai" | "demo";
+      let fallback: string | undefined;
       if (aiEnabled) {
         const body: Record<string, unknown> = {
           type,
@@ -36,9 +37,20 @@ export function useAnalysis(type: AnalysisType) {
           ...opts.extra,
         };
         if (opts.image) body.image = { mediaType: "image/jpeg", data: await blobToBase64(opts.image) };
-        const res = await postJSON<{ result: unknown }>("/api/analyze", body);
-        result = res.result;
-        source = "ai";
+        try {
+          const res = await postJSON<{ result: unknown }>("/api/analyze", body);
+          result = res.result;
+          source = "ai";
+        } catch (e) {
+          // Provider down / quota / key problem: show the labeled rules-based result instead of nothing.
+          // Refusals, invalid input and age limits are shown as errors (no substitute result).
+          const status = e instanceof ApiError ? e.status : 0;
+          const demo = [400, 403, 422].includes(status) ? null : opts.demo(opts.image ? await measureImageQuality(opts.image) : null);
+          if (demo == null) throw e;
+          result = demo;
+          source = "demo";
+          fallback = (e as Error).message;
+        }
       } else {
         const q = opts.image ? await measureImageQuality(opts.image) : null;
         await new Promise((r) => setTimeout(r, 500));
@@ -46,7 +58,7 @@ export function useAnalysis(type: AnalysisType) {
         source = "demo";
       }
       const imageId = opts.image && opts.saveImageToHistory !== false ? await saveImage(opts.image) : undefined;
-      const rec: AnalysisRecord = { id: uid("an"), type, date: dateKey(), source, imageId, result };
+      const rec: AnalysisRecord = { id: uid("an"), type, date: dateKey(), source, imageId, result, ...(fallback && { fallback }) };
       addAnalysis(rec);
       setRecord(rec);
       return rec;
