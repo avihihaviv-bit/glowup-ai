@@ -42,7 +42,9 @@ type AskExtra = Omit<Partial<Parameters<AIRouter["generateObject"]>[0]>, "schema
 const ask = (r: AIRouter, extra: AskExtra = {}): Promise<z.infer<typeof Answer>> =>
   r.generateObject({ task: "test", system: "sys", parts: [{ type: "text", text: "hello" }], tier: "balanced", ...extra, schema: Answer });
 
-const three = { AI_PROVIDERS: "gemini,groq,openrouter", GEMINI_API_KEY: "AIzaTESTKEY000001", GROQ_API_KEY: "gsk_TESTKEY000002", OPENROUTER_API_KEY: "sk-or-TESTKEY000003" };
+// One model per tier, so provider-level failover is what these tests observe.
+const ONE = { GEMINI_MODELS_BALANCED: "gemini-flash-latest", GEMINI_MODELS_FAST: "gemini-flash-lite-latest", GROQ_MODELS_BALANCED: "openai/gpt-oss-120b", GROQ_MODELS_FAST: "openai/gpt-oss-20b", OPENROUTER_MODELS_BALANCED: "openai/gpt-oss-120b" };
+const three = { AI_PROVIDERS: "gemini,groq,openrouter", GEMINI_API_KEY: "AIzaTESTKEY000001", GROQ_API_KEY: "gsk_TESTKEY000002", OPENROUTER_API_KEY: "sk-or-TESTKEY000003", ...ONE };
 
 before(async () => {
   mock = await startMock();
@@ -95,6 +97,20 @@ describe("failover", () => {
     const snap = r.snapshot();
     assert.equal(snap.providers.find((p) => p.id === "gemini")!.status, "cooldown");
     assert.equal(snap.active, "groq");
+  });
+
+  test("free-tier quota on one model -> same provider's next model, other models stay usable", async () => {
+    const r = makeRouter({ ...three, GEMINI_MODELS_DEEP: "gemini-pro-latest,gemini-flash-latest" });
+    mock.script("gemini", [{ status: 429, body: { error: { code: 429, status: "RESOURCE_EXHAUSTED", message: "Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: gemini-pro" } } }]);
+    const out = await ask(r, { tier: "deep" });
+    assert.equal(out.answer, "hi from gemini");
+    assert.deepEqual(mock.seen.map((s) => s.model), ["gemini-pro-latest", "gemini-flash-latest"]);
+    const g = r.snapshot().providers.find((p) => p.id === "gemini")!;
+    assert.equal(g.status, "available", "provider must not be locked because one model has no quota");
+    assert.deepEqual(g.unavailableModels, ["gemini-pro-latest"]);
+    mock.seen.length = 0;
+    await ask(r, { tier: "deep" });
+    assert.deepEqual(mock.seen.map((s) => s.model), ["gemini-flash-latest"], "the exhausted model is skipped until its cooldown ends");
   });
 
   test("daily quota exhausted -> long cooldown and failover", async () => {
@@ -162,7 +178,7 @@ describe("keys", () => {
   });
 
   test("429 with shared-quota keys does NOT rotate to another key (no limit bypassing)", async () => {
-    const r = makeRouter({ ...three, GROQ_API_KEYS: "gsk_KEYA00000001,gsk_KEYB00000002", AI_PROVIDERS: "groq,openrouter" });
+    const r = makeRouter({ ...three, GROQ_API_KEYS: "gsk_KEYA00000001,gsk_KEYB00000002", GROQ_API_KEY: "", AI_PROVIDERS: "groq,openrouter" });
     mock.script("groq", [{ status: 429, body: { error: { message: "Rate limit reached for model in organization on requests per minute (RPM). Please try again in 20s." } } }]);
     const out = await ask(r);
     assert.equal(out.answer, "hi from openrouter");
@@ -170,7 +186,7 @@ describe("keys", () => {
   });
 
   test("429 with keys declared as separate quotas -> next key", async () => {
-    const r = makeRouter({ ...three, GROQ_API_KEYS: "gsk_KEYA00000001,gsk_KEYB00000002", GROQ_KEYS_SEPARATE_QUOTA: "true", AI_PROVIDERS: "groq,openrouter" });
+    const r = makeRouter({ ...three, GROQ_API_KEYS: "gsk_KEYA00000001,gsk_KEYB00000002", GROQ_API_KEY: "", GROQ_KEYS_SEPARATE_QUOTA: "true", AI_PROVIDERS: "groq,openrouter" });
     mock.script("groq", [{ status: 429, body: { error: { message: "Rate limit reached... Please try again in 20s." } } }]);
     const out = await ask(r);
     assert.equal(out.answer, "hi from groq");

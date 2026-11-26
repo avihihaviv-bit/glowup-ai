@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Cpu, Sparkles, Trash2, RefreshCw, Layers, IdCard, GitCompare } from "lucide-react";
+import { ChevronDown, Cpu, Sparkles, Trash2, Layers, IdCard, GitCompare } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { unpackLandmarks } from "@/lib/face/metrics";
 import { FACE_CATEGORIES, type FaceScanReport } from "@/lib/schemas";
 import type { FaceScan } from "@/lib/types";
 import { FACE_SHAPE_INFO, type FaceShape } from "@/lib/knowledge";
-import { blobToBase64, getImage } from "@/lib/images";
+import { blobToBase64, getImage, prepareImage } from "@/lib/images";
 import { fetchStatus, postJSON, profileContext, useAIStatus } from "@/lib/api";
 import { useImageUrl } from "../StoredImage";
 import { cn, dateKey, heDate } from "@/lib/utils";
@@ -82,7 +82,7 @@ function localCards(scan: FaceScan): Partial<Record<(typeof FACE_CATEGORIES)[num
   };
 }
 
-function ReportCard({ k, ai, local }: { k: (typeof FACE_CATEGORIES)[number]; ai?: CardData; local?: CardData }) {
+function ReportCard({ k, ai, local, aiReady, onRunAI, busy }: { k: (typeof FACE_CATEGORIES)[number]; ai?: CardData; local?: CardData; aiReady?: boolean; onRunAI?: () => void; busy?: boolean }) {
   const [open, setOpen] = useState(false);
   const c = ai ?? local;
   return (
@@ -98,10 +98,19 @@ function ReportCard({ k, ai, local }: { k: (typeof FACE_CATEGORIES)[number]; ai?
               </Badge>
             )}
           </div>
-          <p className={cn("mt-1 text-sm text-muted", !open && "line-clamp-2")}>{c ? c.observation : "דורש ניתוח AI (חבר מפתח ואשר שליחת תמונות)."}</p>
+          <p className={cn("mt-1 text-sm text-muted", !open && "line-clamp-2")}>
+            {c ? c.observation : aiReady ? "הקטגוריה הזו מגיעה מדוח ה-AI, שעוד לא נוצר לסריקה הזו." : "דורש ניתוח AI. במצב דמו מוצגות רק התצפיות שחושבו במכשיר."}
+          </p>
         </div>
         {c && <ChevronDown className={cn("mt-1 size-4 shrink-0 text-dim transition", open && "rotate-180")} />}
       </button>
+      {!c && aiReady && onRunAI && (
+        <div className="px-4 pb-4">
+          <Button size="sm" variant="secondary" loading={busy} icon={<Sparkles className="size-4" />} onClick={onRunAI}>
+            יצירת דוח AI מלא
+          </Button>
+        </div>
+      )}
       {open && c && (
         <div className="space-y-3 border-t border-line px-4 pb-4 pt-3 text-sm">
           <div>
@@ -168,7 +177,7 @@ export function ScanReport({ scan }: { scan: FaceScan }) {
       const enc = async (id?: string) => {
         if (!id) return undefined;
         const b = await getImage(id);
-        return b ? { mediaType: "image/jpeg" as const, data: await blobToBase64(b) } : undefined;
+        return b ? { mediaType: "image/jpeg" as const, data: await blobToBase64(await prepareImage(b, 1024, 0.85)) } : undefined;
       };
       const o = scan.observations!;
       const res = await postJSON<{ report: FaceScanReport }>("/api/face-scan", {
@@ -249,11 +258,11 @@ export function ScanReport({ scan }: { scan: FaceScan }) {
           {!report && (
             <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted">
-                {ai.aiEnabled ? "אפשר להוסיף דוח AI מלא (14 קטגוריות) לסריקה הזו. התמונות יישלחו לשרת לצורך הניתוח בלבד." : "מצב דמו: מוצגות רק תצפיות שחושבו במכשיר מנקודות הציון. לדוח מלא צריך ANTHROPIC_API_KEY."}
+                {ai.aiEnabled ? "בסריקה הזו לא אושרה שליחת תמונות, אז מוצגות רק התצפיות מהמכשיר. לחיצה על הכפתור שולחת את התמונות לשרת לניתוח בלבד ויוצרת דוח מלא של 14 קטגוריות." : "מצב דמו: מוצגות רק תצפיות שחושבו במכשיר מנקודות הציון. לדוח מלא צריך מפתח AI בשרת."}
               </p>
               {ai.aiEnabled && (
-                <Button loading={busy} icon={<RefreshCw className="size-4" />} onClick={runAI}>
-                  יצירת דוח AI
+                <Button loading={busy} icon={<Sparkles className="size-4" />} onClick={runAI}>
+                  יצירת דוח AI מלא
                 </Button>
               )}
             </Card>
@@ -262,7 +271,7 @@ export function ScanReport({ scan }: { scan: FaceScan }) {
           {err && <ErrorBox message={err} onRetry={runAI} />}
           <div className="grid gap-3">
             {FACE_CATEGORIES.map((k) => (
-              <ReportCard key={k} k={k} ai={report?.cards?.[k]} local={local[k]} />
+              <ReportCard key={k} k={k} ai={report?.cards?.[k]} local={local[k]} aiReady={ai.aiEnabled} onRunAI={runAI} busy={busy} />
             ))}
           </div>
           {report && (report.groomingPriorities.length > 0 || report.hairstyleIdeas.length > 0) && (

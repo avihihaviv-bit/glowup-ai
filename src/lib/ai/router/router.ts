@@ -321,6 +321,10 @@ export class AIRouter {
               }
               if (e.kind === "rate_limit" || e.kind === "quota") {
                 const cool = e.retryAfterMs ?? (e.kind === "quota" ? HOUR : 30_000);
+                // Free-tier limits are usually per model (Gemini, Groq): park this model and try the
+                // provider's next model before giving up on the whole provider.
+                ps.modelUnavailable.set(model.id, this.now() + cool);
+                if (models.indexOf(model) < models.length - 1) continue modelLoop;
                 ks.cooldownUntil = this.now() + cool;
                 if (cfg.separateQuota) break; // keys have independent quotas -> next key
                 ps.cooldownUntil = this.now() + cool;

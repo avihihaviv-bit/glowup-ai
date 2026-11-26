@@ -101,7 +101,8 @@ export function ScanWizard({ onDone }: { onDone: (scanId: string) => void }) {
       const { aiEnabled } = await fetchStatus();
       if (aiEnabled && consent) {
         setSaving("ה-AI כותב את הדוח… (עד דקה)");
-        const enc = async (st: ScanStep) => (shots[st] ? { mediaType: "image/jpeg" as const, data: await blobToBase64(shots[st]!.blob) } : undefined);
+        // Downscale before upload: 3 full-resolution camera frames can exceed the 4.5 MB request limit on Vercel.
+        const enc = async (st: ScanStep) => (shots[st] ? { mediaType: "image/jpeg" as const, data: await blobToBase64(await prepareImage(shots[st]!.blob, 1024, 0.85)) } : undefined);
         const observations = [
           `יחס רוחב לגובה של הפנים בתמונה: ${obs.widthToHeight.toFixed(2)}`,
           `רוחב לסת ביחס לרוחב לחיים: ${obs.jawToCheek.toFixed(2)}`,
@@ -257,7 +258,7 @@ export function ScanWizard({ onDone }: { onDone: (scanId: string) => void }) {
           <label className="flex items-start gap-3 text-sm">
             <input type="checkbox" className="mt-0.5 size-5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             <span>
-              מאשר/ת שליחת התמונות לניתוח AI בשרת (לדוח המלא). בלי אישור, נשמרות רק התצפיות שחושבו במכשיר.
+              <b>לדוח המלא (14 קטגוריות):</b> מאשר/ת שליחת התמונות לניתוח AI בשרת. בלי אישור מוצגות רק 5 תצפיות שחושבו במכשיר, ואפשר להוסיף דוח AI אחר כך מהדוח.
               <span className="mt-1 flex items-center gap-1 text-xs text-dim">
                 <ShieldCheck className="size-3.5 text-green" /> התמונות נשמרות רק במכשיר שלך.
               </span>

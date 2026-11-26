@@ -55,9 +55,10 @@ export function loadConfig(env: Env = process.env): RouterConfig {
       models: tiers(env, "GEMINI", {
         fast: ["gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-flash-latest"],
         balanced: ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.6-flash"],
-        deep: ["gemini-pro-latest", "gemini-flash-latest", "gemini-3.8-flash"],
+        // Pro models are not on the free tier: free Flash first; paid accounts can set GEMINI_MODELS_DEEP.
+        deep: ["gemini-flash-latest", "gemini-3.8-flash", "gemini-pro-latest"],
       }),
-      visionModels: list(env.GEMINI_MODELS_VISION).length ? list(env.GEMINI_MODELS_VISION) : ["gemini-flash-latest", "gemini-3.8-flash", "gemini-pro-latest"],
+      visionModels: list(env.GEMINI_MODELS_VISION).length ? list(env.GEMINI_MODELS_VISION) : ["gemini-flash-latest", "gemini-3.8-flash", "gemini-flash-lite-latest"],
       visionCapable: (m) => /gemini/i.test(m) && !/embedding|tts|image-generation/i.test(m),
       dailyRequestLimit: num(env.GEMINI_DAILY_REQUEST_LIMIT, 0) || undefined,
       maxImages: 16,
